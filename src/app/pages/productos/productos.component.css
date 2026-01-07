@@ -1,0 +1,210 @@
+/* Productos Page - Catálogo de Cursos */
+.productos-container {
+  background: #0a0a0a;
+  color: #fff;
+  min-height: 100vh;
+  padding-bottom: 4rem;
+}
+
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Navbar */
+.navbar {
+  padding: 1.5rem 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  color: #fff;
+  text-decoration: none;
+  letter-spacing: 0.1em;
+}
+
+.nav-logo span {
+  color: #c9a227;
+}
+
+.nav-link {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #c9a227;
+}
+
+/* Header */
+.productos-header {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.header-tag {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: #c9a227;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.productos-header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.productos-header h1 span {
+  color: #c9a227;
+}
+
+.productos-header p {
+  font-family: 'DM Sans', sans-serif;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Cursos Grid */
+.cursos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 0 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Curso Card */
+.curso-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+  color: #fff;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.curso-card:hover {
+  border-color: rgba(201, 162, 39, 0.3);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.curso-image {
+  position: relative;
+  aspect-ratio: 16/10;
+  overflow: hidden;
+}
+
+.curso-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.curso-card:hover .curso-image img {
+  transform: scale(1.1);
+}
+
+.curso-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.curso-card:hover .curso-overlay {
+  opacity: 1;
+}
+
+.play-icon {
+  width: 64px;
+  height: 64px;
+  border: 2px solid #c9a227;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c9a227;
+  transform: scale(0.8);
+  transition: all 0.3s ease;
+}
+
+.curso-card:hover .play-icon {
+  transform: scale(1);
+}
+
+.curso-info {
+  padding: 1.5rem;
+}
+
+.curso-info h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.curso-info p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1rem;
+}
+
+.curso-meta {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: #c9a227;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 3rem 2rem 1rem;
+  margin-top: 2rem;
+}
+
+.footer p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 1rem 1.5rem;
+  }
+
+  .cursos-grid {
+    padding: 0 1.5rem;
+    grid-template-columns: 1fr;
+  }
+
+  .productos-header {
+    padding: 3rem 1.5rem;
+  }
+}

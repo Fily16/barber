@@ -1,0 +1,203 @@
+/* Home Page Styles - Urban Luxury */
+.home-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: #0a0a0a;
+  overflow: hidden;
+}
+
+.home-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(201, 162, 39, 0.05) 0%, transparent 70%);
+  z-index: 0;
+}
+
+.grain-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Logo */
+.home-logo {
+  text-align: center;
+  margin-bottom: 4rem;
+  position: relative;
+  z-index: 2;
+  animation: fadeInDown 1s ease;
+}
+
+.logo-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 8vw, 5rem);
+  color: #fff;
+  letter-spacing: 0.2em;
+  display: block;
+}
+
+.logo-text .gold {
+  color: #c9a227;
+}
+
+.logo-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+}
+
+/* Options Container */
+.home-options {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* Option Card */
+.option-card {
+  width: 280px;
+  padding: 3rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.option-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(201, 162, 39, 0.1) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.option-card:hover {
+  border-color: rgba(201, 162, 39, 0.3);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.option-card:hover::before {
+  opacity: 1;
+}
+
+.option-icon {
+  margin-bottom: 1.5rem;
+  color: #c9a227;
+  transition: transform 0.4s ease;
+}
+
+.option-card:hover .option-icon {
+  transform: scale(1.1);
+}
+
+.option-card h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.75rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.option-card p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.option-arrow {
+  font-size: 1.5rem;
+  color: #c9a227;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.option-card:hover .option-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Divider */
+.option-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.option-divider span {
+  width: 1px;
+  height: 100px;
+  background: linear-gradient(to bottom, transparent, rgba(201, 162, 39, 0.3), transparent);
+}
+
+/* Footer */
+.home-footer {
+  position: absolute;
+  bottom: 2rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 2;
+}
+
+.home-footer p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .home-options {
+    flex-direction: column;
+  }
+
+  .option-divider span {
+    width: 100px;
+    height: 1px;
+  }
+
+  .option-card {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .home-logo {
+    margin-bottom: 3rem;
+  }
+}

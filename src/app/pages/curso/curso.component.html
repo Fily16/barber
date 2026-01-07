@@ -1,0 +1,218 @@
+<!-- Página de Curso Individual -->
+<div class="curso-container" *ngIf="curso">
+  <!-- Grain overlay -->
+  <div class="grain-overlay"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a routerLink="/" class="nav-logo">
+      BARBER<span>SHOP</span>
+    </a>
+    <a routerLink="/productos" class="nav-back">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Volver a cursos
+    </a>
+  </nav>
+
+  <!-- ============== PANTALLA DE LOGIN ============== -->
+  <div class="login-screen" *ngIf="!isAuthenticated && !showWelcome">
+    <div class="login-container">
+      <div class="login-header">
+        <div class="lock-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h2>ACCESO AL CURSO</h2>
+        <p class="course-name">{{ curso.titulo }}</p>
+        <p class="login-subtitle">Ingresa tus credenciales para acceder al contenido</p>
+      </div>
+
+      <form class="login-form" (ngSubmit)="login()">
+        <div class="form-group">
+          <label for="username">Usuario</label>
+          <input
+            type="text"
+            id="username"
+            [(ngModel)]="username"
+            name="username"
+            placeholder="Ingresa tu usuario"
+            required
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input
+            type="password"
+            id="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Ingresa tu contraseña"
+            required
+          />
+        </div>
+
+        <div class="login-error" *ngIf="loginError">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          {{ loginError }}
+        </div>
+
+        <button type="submit" class="login-btn">
+          INGRESAR AL CURSO
+        </button>
+      </form>
+
+      <div class="login-help">
+        <p>¿No tienes acceso? <a href="https://wa.me/51970457642" target="_blank">Contáctanos por WhatsApp</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== PANTALLA DE BIENVENIDA ============== -->
+  <div class="welcome-screen" *ngIf="showWelcome">
+    <div class="welcome-content">
+      <div class="welcome-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <h2>¡BIENVENIDO AL CURSO!</h2>
+      <p class="welcome-course">{{ curso.titulo }}</p>
+      <p class="welcome-message">Disfruta todo el contenido exclusivo</p>
+
+      <div class="membership-notice">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Recuerda que tu membresía es válida por <strong>5 meses</strong>. ¡Aprovéchala!</span>
+      </div>
+
+      <div class="loading-bar">
+        <div class="loading-progress"></div>
+      </div>
+      <p class="loading-text">Cargando contenido...</p>
+    </div>
+  </div>
+
+  <!-- ============== CONTENIDO DEL CURSO (después de autenticación) ============== -->
+  <div *ngIf="isAuthenticated">
+
+    <!-- Membership Badge -->
+    <div class="membership-badge">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      <span>Membresía activa · Válida por 5 meses</span>
+      <button class="logout-btn" (click)="logout()">Cerrar sesión</button>
+    </div>
+
+    <!-- Video Player Section -->
+    <section class="video-player">
+      <div class="player-wrapper">
+        <iframe
+          *ngIf="selectedVideo"
+          [src]="selectedVideo.videoUrl | safeUrl"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+        <div class="video-placeholder" *ngIf="!selectedVideo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <p>Selecciona un video para comenzar</p>
+        </div>
+      </div>
+      <div class="video-info" *ngIf="selectedVideo">
+        <h2>{{ selectedVideo.titulo }}</h2>
+        <span class="video-duration">{{ selectedVideo.duracion }}</span>
+      </div>
+    </section>
+
+    <!-- Course Content -->
+    <section class="course-content">
+      <!-- Header del Curso -->
+      <div class="course-header">
+        <h1>{{ curso.titulo }}</h1>
+        <p>{{ curso.descripcion }}</p>
+      </div>
+
+      <!-- Sección Teoría -->
+      <div class="content-section">
+        <h3 class="section-title">
+          <span class="section-icon">📚</span>
+          TEORÍA
+        </h3>
+        <div class="video-card teoria-card"
+             [class.active]="isSelected(curso.teoria)"
+             (click)="selectVideo(curso.teoria)">
+          <div class="card-thumbnail">
+            <img [src]="curso.teoria.thumbnail" [alt]="curso.teoria.titulo" />
+            <span class="duration-badge">{{ curso.teoria.duracion }}</span>
+            <div class="play-overlay">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </div>
+          </div>
+          <div class="card-info">
+            <h4>{{ curso.teoria.titulo }}</h4>
+            <span class="card-tag">Video completo de teoría</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección Práctica -->
+      <div class="content-section">
+        <h3 class="section-title">
+          <span class="section-icon">✂️</span>
+          PRÁCTICA
+        </h3>
+        <div class="practicas-grid">
+          <div *ngFor="let practica of curso.practicas; let i = index"
+               class="video-card"
+               [class.active]="isSelected(practica)"
+               (click)="selectVideo(practica)">
+            <div class="card-thumbnail">
+              <img [src]="practica.thumbnail" [alt]="practica.titulo" />
+              <span class="duration-badge">{{ practica.duracion }}</span>
+              <span class="video-number">{{ i + 1 }}</span>
+              <div class="play-overlay">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+              </div>
+            </div>
+            <div class="card-info">
+              <h4>{{ practica.titulo }}</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>© 2025 BarberShop Academy</p>
+    </footer>
+  </div>
+</div>
+
+<!-- No encontrado -->
+<div class="not-found" *ngIf="!curso">
+  <h2>Curso no encontrado</h2>
+  <a routerLink="/productos" class="back-btn">Volver a cursos</a>
+</div>

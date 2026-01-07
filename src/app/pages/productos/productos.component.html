@@ -1,0 +1,48 @@
+<!-- Página Productos - Catálogo de Cursos -->
+<div class="productos-container">
+  <!-- Grain overlay -->
+  <div class="grain-overlay"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a routerLink="/" class="nav-logo">
+      BARBER<span>SHOP</span>
+    </a>
+    <a routerLink="/nosotros" class="nav-link">Nosotros</a>
+  </nav>
+
+  <!-- Header -->
+  <header class="productos-header">
+    <span class="header-tag">FORMACIÓN PROFESIONAL</span>
+    <h1>NUESTROS <span>CURSOS</span></h1>
+    <p>Selecciona un curso para acceder al contenido</p>
+  </header>
+
+  <!-- Grid de Cursos -->
+  <section class="cursos-grid">
+    <a *ngFor="let curso of cursos"
+       [routerLink]="['/curso', curso.id]"
+       class="curso-card">
+      <div class="curso-image">
+        <img [src]="curso.imagen" [alt]="curso.titulo" />
+        <div class="curso-overlay">
+          <span class="play-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div class="curso-info">
+        <h3>{{ curso.titulo }}</h3>
+        <p>{{ curso.descripcion }}</p>
+        <span class="curso-meta">{{ curso.videosCount }} videos</span>
+      </div>
+    </a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>© 2025 BarberShop Academy</p>
+  </footer>
+</div>
