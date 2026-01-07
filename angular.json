@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "c2ffe39f-72e2-43a6-bcb7-15a2f8a86080"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -22,6 +23,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/imagen",
+                "output": "imagen"
               }
             ],
             "styles": [
@@ -34,12 +40,12 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumError": "10MB"
                 },
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumError": "80kB"
                 }
               ],
               "outputHashing": "all"
