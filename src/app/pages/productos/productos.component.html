@@ -6,43 +6,42 @@
   <!-- Navbar -->
   <nav class="navbar">
     <a routerLink="/" class="nav-logo">
-      BARBER<span>SHOP</span>
+      <img src="imagen/logo%20Raplh.PNG" alt="Ralph Cuts" class="nav-logo-img" />
     </a>
-    <a routerLink="/nosotros" class="nav-link">Nosotros</a>
+    <a routerLink="/nosotros" class="nav-link">NOSOTROS</a>
   </nav>
 
   <!-- Header -->
   <header class="productos-header">
-    <span class="header-tag">FORMACIÓN PROFESIONAL</span>
-    <h1>NUESTROS <span>CURSOS</span></h1>
-    <p>Selecciona un curso para acceder al contenido</p>
+    <h1>BASIC <span>TRAINING</span></h1>
   </header>
 
-  <!-- Grid de Cursos -->
-  <section class="cursos-grid">
-    <a *ngFor="let curso of cursos"
-       [routerLink]="['/curso', curso.id]"
-       class="curso-card">
+  <!-- Curso Principal -->
+  <section class="curso-section">
+    <a [routerLink]="['/curso', 'basic-training']" class="curso-card-main">
       <div class="curso-image">
-        <img [src]="curso.imagen" [alt]="curso.titulo" />
+        <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800" alt="Basic Training" />
         <div class="curso-overlay">
           <span class="play-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
             </svg>
           </span>
         </div>
       </div>
       <div class="curso-info">
-        <h3>{{ curso.titulo }}</h3>
-        <p>{{ curso.descripcion }}</p>
-        <span class="curso-meta">{{ curso.videosCount }} videos</span>
+        <h3>BASIC TRAINING</h3>
+        <p>Fundamentos esenciales para dominar el arte de la barbería profesional</p>
+        <div class="curso-details">
+          <span class="curso-meta">5 VIDEOS</span>
+          <span class="curso-arrow">ACCEDER →</span>
+        </div>
       </div>
     </a>
   </section>
 
   <!-- Footer -->
   <footer class="footer">
-    <p>© 2025 BarberShop Academy</p>
+    <p>© 2025 Ralph Cuts Academy</p>
   </footer>
 </div>

@@ -3,7 +3,8 @@
   background: #0a0a0a;
   color: #fff;
   min-height: 100vh;
-  padding-bottom: 4rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .grain-overlay {
@@ -17,97 +18,113 @@
 
 /* Navbar */
 .navbar {
-  padding: 1.5rem 3rem;
+  padding: 0.5rem 2rem;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  position: relative;
+  z-index: 10;
 }
 
 .nav-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.5rem;
-  color: #fff;
-  text-decoration: none;
-  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  margin-left: -50px;
+  margin-top: -80px;
 }
 
-.nav-logo span {
-  color: #c9a227;
+.nav-logo-img {
+  height: 270px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 10px rgba(201, 162, 39, 0.2));
+  transition: all 0.3s ease;
+}
+
+.nav-logo-img:hover {
+  filter: drop-shadow(0 4px 15px rgba(201, 162, 39, 0.3));
+  transform: scale(1.02);
 }
 
 .nav-link {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  color: #fff;
   text-decoration: none;
-  transition: color 0.3s ease;
+  letter-spacing: 0.15em;
+  transition: all 0.3s ease;
+  position: relative;
+  padding: 0.5rem 0;
+  margin-top: 40px;
+  margin-right: 0.5rem;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #c9a227;
+  transition: width 0.3s ease;
 }
 
 .nav-link:hover {
   color: #c9a227;
 }
 
+.nav-link:hover::after {
+  width: 100%;
+}
+
 /* Header */
 .productos-header {
   text-align: center;
-  padding: 4rem 2rem;
-}
-
-.header-tag {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
-  color: #c9a227;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 1rem;
+  padding: 2rem 2rem 4rem;
+  margin-top: -80px;
 }
 
 .productos-header h1 {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(2.5rem, 6vw, 4rem);
-  letter-spacing: 0.1em;
-  margin-bottom: 0.5rem;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  letter-spacing: 0.15em;
 }
 
 .productos-header h1 span {
   color: #c9a227;
 }
 
-.productos-header p {
-  font-family: 'DM Sans', sans-serif;
-  color: rgba(255, 255, 255, 0.5);
+/* Curso Section */
+.curso-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 2rem 4rem;
 }
 
-/* Cursos Grid */
-.cursos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  padding: 0 3rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Curso Card */
-.curso-card {
+/* Curso Card Main */
+.curso-card-main {
+  max-width: 700px;
+  width: 100%;
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   text-decoration: none;
   color: #fff;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.curso-card:hover {
+.curso-card-main:hover {
   border-color: rgba(201, 162, 39, 0.3);
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  transform: translateY(-10px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
 }
 
 .curso-image {
   position: relative;
-  aspect-ratio: 16/10;
+  aspect-ratio: 16/9;
   overflow: hidden;
 }
 
@@ -115,31 +132,31 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s ease;
+  transition: transform 0.7s ease;
 }
 
-.curso-card:hover .curso-image img {
-  transform: scale(1.1);
+.curso-card-main:hover .curso-image img {
+  transform: scale(1.08);
 }
 
 .curso-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(10, 10, 10, 0.6);
+  background: linear-gradient(to bottom, rgba(10, 10, 10, 0.2), rgba(10, 10, 10, 0.7));
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.4s ease;
 }
 
-.curso-card:hover .curso-overlay {
+.curso-card-main:hover .curso-overlay {
   opacity: 1;
 }
 
 .play-icon {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   border: 2px solid #c9a227;
   border-radius: 50%;
   display: flex;
@@ -147,64 +164,205 @@
   justify-content: center;
   color: #c9a227;
   transform: scale(0.8);
-  transition: all 0.3s ease;
+  transition: all 0.4s ease;
+  background: rgba(10, 10, 10, 0.5);
 }
 
-.curso-card:hover .play-icon {
+.play-icon svg {
+  margin-left: 4px;
+}
+
+.curso-card-main:hover .play-icon {
   transform: scale(1);
+  background: rgba(201, 162, 39, 0.15);
 }
 
 .curso-info {
-  padding: 1.5rem;
+  padding: 2rem;
 }
 
 .curso-info h3 {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.5rem;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.75rem;
 }
 
 .curso-info p {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.curso-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .curso-meta {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
-  color: #c9a227;
-  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.1em;
+}
+
+.curso-arrow {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1rem;
+  color: #c9a227;
+  letter-spacing: 0.1em;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+}
+
+.curso-card-main:hover .curso-arrow {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* Footer */
 .footer {
   text-align: center;
-  padding: 3rem 2rem 1rem;
-  margin-top: 2rem;
+  padding: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .footer p {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.3);
 }
 
-/* Responsive */
+/* ==========================================
+   RESPONSIVE - TABLETS
+   ========================================== */
 @media (max-width: 768px) {
   .navbar {
-    padding: 1rem 1.5rem;
+    padding: 0.5rem 1.25rem;
   }
 
-  .cursos-grid {
-    padding: 0 1.5rem;
-    grid-template-columns: 1fr;
+  .nav-logo {
+    margin-left: -30px;
+    margin-top: -50px;
+  }
+
+  .nav-logo-img {
+    height: 210px;
+  }
+
+  .nav-link {
+    font-size: 1rem;
+    margin-top: 25px;
   }
 
   .productos-header {
-    padding: 3rem 1.5rem;
+    padding: 1rem 1.5rem 3rem;
+    margin-top: -50px;
+  }
+
+  .curso-section {
+    padding: 0 1.5rem 3rem;
+  }
+
+  .curso-info {
+    padding: 1.5rem;
+  }
+
+  .curso-info h3 {
+    font-size: 1.75rem;
+  }
+
+  .play-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .play-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MÓVILES
+   ========================================== */
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0.5rem 1rem;
+  }
+
+  .nav-logo {
+    margin-left: -25px;
+    margin-top: -40px;
+  }
+
+  .nav-logo-img {
+    height: 180px;
+  }
+
+  .nav-link {
+    font-size: 0.9rem;
+    margin-top: 15px;
+  }
+
+  .productos-header {
+    padding: 0.5rem 1rem 2rem;
+    margin-top: -40px;
+  }
+
+  .productos-header h1 {
+    font-size: 2rem;
+  }
+
+  .curso-section {
+    padding: 0 1rem 2rem;
+  }
+
+  .curso-info {
+    padding: 1.25rem;
+  }
+
+  .curso-info h3 {
+    font-size: 1.5rem;
+  }
+
+  .curso-info p {
+    font-size: 0.9rem;
+  }
+
+  .play-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .play-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MÓVILES MUY PEQUEÑOS
+   ========================================== */
+@media (max-width: 360px) {
+  .nav-logo {
+    margin-left: -20px;
+    margin-top: -35px;
+  }
+
+  .nav-logo-img {
+    height: 150px;
+  }
+
+  .productos-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .curso-info h3 {
+    font-size: 1.25rem;
   }
 }

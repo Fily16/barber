@@ -8,6 +8,8 @@
   position: relative;
   background: #0a0a0a;
   overflow: hidden;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
 }
 
 .home-bg {
@@ -26,7 +28,7 @@
   z-index: 1;
 }
 
-/* Logo */
+/* Logo Image */
 .home-logo {
   text-align: center;
   margin-bottom: 4rem;
@@ -35,128 +37,70 @@
   animation: fadeInDown 1s ease;
 }
 
-.logo-text {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(3rem, 8vw, 5rem);
-  color: #fff;
-  letter-spacing: 0.2em;
-  display: block;
+.logo-image {
+  width: 100%;
+  max-width: 650px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 25px rgba(201, 162, 39, 0.15));
+  transition: transform 0.4s ease, filter 0.4s ease;
 }
 
-.logo-text .gold {
-  color: #c9a227;
-}
-
-.logo-sub {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.5em;
-  text-transform: uppercase;
+.logo-image:hover {
+  transform: scale(1.02);
+  filter: drop-shadow(0 8px 35px rgba(201, 162, 39, 0.25));
 }
 
 /* Options Container */
 .home-options {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 3rem;
   position: relative;
   z-index: 2;
+  animation: fadeInUp 1s ease 0.3s both;
 }
 
-/* Option Card */
-.option-card {
-  width: 280px;
-  padding: 3rem 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  text-align: center;
+/* Option Button - Estilo Minimalista */
+.option-btn {
+  position: relative;
   text-decoration: none;
-  color: #fff;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.option-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(201, 162, 39, 0.1) 0%, transparent 50%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.option-card:hover {
-  border-color: rgba(201, 162, 39, 0.3);
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-}
-
-.option-card:hover::before {
-  opacity: 1;
-}
-
-.option-icon {
-  margin-bottom: 1.5rem;
-  color: #c9a227;
-  transition: transform 0.4s ease;
-}
-
-.option-card:hover .option-icon {
-  transform: scale(1.1);
-}
-
-.option-card h2 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.75rem;
-  letter-spacing: 0.15em;
-  margin-bottom: 0.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.option-card p {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 1.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.option-arrow {
-  font-size: 1.5rem;
-  color: #c9a227;
-  opacity: 0;
-  transform: translateX(-10px);
-  transition: all 0.3s ease;
-  display: block;
-}
-
-.option-card:hover .option-arrow {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-/* Divider */
-.option-divider {
+  padding: 1rem 2.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
+  transition: all 0.4s ease;
 }
 
-.option-divider span {
-  width: 1px;
-  height: 100px;
-  background: linear-gradient(to bottom, transparent, rgba(201, 162, 39, 0.3), transparent);
+.btn-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.25em;
+  color: rgba(255, 255, 255, 0.85);
+  transition: all 0.4s ease;
+}
+
+.btn-line {
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c9a227, transparent);
+  transition: width 0.4s ease;
+}
+
+.option-btn:hover .btn-text {
+  color: #fff;
+  text-shadow: 0 0 20px rgba(201, 162, 39, 0.5);
+}
+
+.option-btn:hover .btn-line {
+  width: 100%;
 }
 
 /* Footer */
 .home-footer {
   position: absolute;
-  bottom: 2rem;
+  bottom: 1.5rem;
   left: 0;
   right: 0;
   text-align: center;
@@ -165,7 +109,7 @@
 
 .home-footer p {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.3);
 }
 
@@ -181,23 +125,132 @@
   }
 }
 
-/* Responsive */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - TABLETS
+   ========================================== */
 @media (max-width: 768px) {
+  .home-container {
+    padding: 3rem 1.5rem;
+    justify-content: center;
+  }
+
+  .home-logo {
+    margin-bottom: 3.5rem;
+  }
+
+  .logo-image {
+    max-width: 480px;
+  }
+
   .home-options {
-    flex-direction: column;
+    gap: 2.5rem;
   }
 
-  .option-divider span {
-    width: 100px;
-    height: 1px;
+  .btn-text {
+    font-size: 1.2rem;
   }
 
-  .option-card {
-    width: 100%;
-    max-width: 320px;
+  .option-btn {
+    padding: 0.875rem 2rem;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MÓVILES
+   ========================================== */
+@media (max-width: 480px) {
+  .home-container {
+    padding: 2rem 1rem;
   }
 
   .home-logo {
     margin-bottom: 3rem;
+  }
+
+  .logo-image {
+    max-width: 340px;
+  }
+
+  .home-options {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .option-btn {
+    padding: 0.75rem 1.75rem;
+  }
+
+  .btn-text {
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
+  }
+
+  .home-footer p {
+    font-size: 0.65rem;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MÓVILES MUY PEQUEÑOS
+   ========================================== */
+@media (max-width: 360px) {
+  .logo-image {
+    max-width: 290px;
+  }
+
+  .home-options {
+    gap: 1.25rem;
+  }
+
+  .btn-text {
+    font-size: 1rem;
+  }
+
+  .option-btn {
+    padding: 0.625rem 1.5rem;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - LANDSCAPE EN MÓVILES
+   ========================================== */
+@media (max-height: 500px) and (orientation: landscape) {
+  .home-container {
+    padding-top: 1rem;
+    justify-content: center;
+  }
+
+  .home-logo {
+    margin-bottom: 2rem;
+  }
+
+  .logo-image {
+    max-width: 250px;
+  }
+
+  .home-options {
+    flex-direction: row;
+    gap: 2.5rem;
+  }
+
+  .btn-text {
+    font-size: 1rem;
+  }
+
+  .home-footer {
+    position: relative;
+    bottom: auto;
+    margin-top: 1.5rem;
   }
 }
