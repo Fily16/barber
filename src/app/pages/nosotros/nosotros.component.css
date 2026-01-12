@@ -1,8 +1,9 @@
-/* Nosotros Page - Urban Luxury Simplified */
+/* Nosotros Page - Storytelling con imagen móvil */
 .nosotros-container {
   background: #0a0a0a;
   color: #fff;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .grain-overlay {
@@ -14,7 +15,9 @@
   z-index: 1000;
 }
 
-/* Navbar */
+/* ==========================================
+   NAVBAR
+   ========================================== */
 .navbar {
   position: fixed;
   top: 0;
@@ -82,7 +85,9 @@
   width: 100%;
 }
 
-/* Hero con Video */
+/* ==========================================
+   HERO
+   ========================================== */
 .hero {
   height: 100vh;
   position: relative;
@@ -109,7 +114,7 @@
   background: linear-gradient(to bottom,
     rgba(10, 10, 10, 0.6) 0%,
     rgba(10, 10, 10, 0.3) 50%,
-    rgba(10, 10, 10, 0.85) 100%);
+    rgba(10, 10, 10, 0.95) 100%);
 }
 
 .hero-content {
@@ -134,175 +139,305 @@
   margin-top: 0.25rem;
 }
 
-/* About Section */
-.about {
-  padding: 6rem 2rem;
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.section-tag {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
-  color: #c9a227;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  margin-bottom: 1rem;
-  display: block;
-}
-
-.about h2 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(2rem, 5vw, 3rem);
-  letter-spacing: 0.05em;
-  margin-bottom: 1.5rem;
-}
-
-.about h2 span {
-  color: #c9a227;
-}
-
-.about p {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.8;
-  margin-bottom: 3rem;
-}
-
-.about-stats {
+/* Scroll Indicator */
+.scroll-indicator {
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  justify-content: center;
-  gap: 4rem;
-}
-
-.stat {
-  text-align: center;
-}
-
-.stat-number {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 2.5rem;
-  color: #c9a227;
-  display: block;
-}
-
-.stat-label {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* Instructor Section */
-.instructor {
-  padding: 4rem 2rem 6rem;
-  background: rgba(201, 162, 39, 0.02);
-}
-
-.instructor-content {
-  max-width: 600px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.instructor-card {
-  margin-top: 2rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 2rem;
-  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 2rem;
-  text-align: left;
+  gap: 0.75rem;
+  z-index: 2;
 }
 
-.instructor-image {
+.scroll-indicator span {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.scroll-line {
+  width: 1px;
+  height: 50px;
+  background: linear-gradient(to bottom, #c9a227, transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; height: 50px; }
+  50% { opacity: 1; height: 70px; }
+}
+
+/* ==========================================
+   STORYTELLING SECTION
+   ========================================== */
+.storytelling {
   position: relative;
-  width: 150px;
-  height: 150px;
-  flex-shrink: 0;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
 }
 
-.instructor-image img {
+/* ==========================================
+   IMAGEN QUE SE MUEVE
+   ========================================== */
+.moving-image {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 340px;
+  height: 420px;
+  z-index: 50;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  opacity: 1;
+}
+
+.moving-image.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.moving-image.position-left {
+  left: calc(50% - 500px);
+}
+
+.moving-image.position-right {
+  left: calc(50% + 160px);
+}
+
+.moving-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center top;
+  filter: grayscale(20%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
-.instagram-link {
+.image-badge {
   position: absolute;
-  bottom: -10px;
-  right: -10px;
-  width: 40px;
-  height: 40px;
+  bottom: 1.5rem;
+  left: 1.5rem;
   background: #c9a227;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.badge-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.5rem;
+  color: #0a0a0a;
+  line-height: 1;
+}
+
+.badge-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.55rem;
+  color: #0a0a0a;
+  letter-spacing: 0.15em;
+}
+
+/* ==========================================
+   STORY ROWS
+   ========================================== */
+.story-row {
+  min-height: 70vh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #0a0a0a;
-  transition: transform 0.3s ease;
+  padding: 2rem 0;
 }
 
-.instagram-link:hover {
-  transform: scale(1.1);
+.row-spacer {
+  flex: 1;
 }
 
-.instructor-info h3 {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.75rem;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.25rem;
+.row-content {
+  flex: 1;
+  max-width: 400px;
+  padding: 2rem;
+  opacity: 0;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.instructor-role {
+.row-content.left {
+  text-align: left;
+  transform: translateX(-40px);
+}
+
+.row-content.right {
+  text-align: right;
+  margin-left: auto;
+  transform: translateX(40px);
+}
+
+.row-content.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Content styles */
+.content-tag {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #c9a227;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  display: block;
+  margin-bottom: 1rem;
 }
 
-.instructor-info p {
+.content-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(4rem, 10vw, 6rem);
+  letter-spacing: 0.05em;
+  line-height: 0.9;
+  margin-bottom: 0.5rem;
+}
+
+.content-role {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.6;
-  margin-top: 1rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.1em;
 }
 
-/* CTA */
+.content-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 3.5rem;
+  color: rgba(201, 162, 39, 0.2);
+  line-height: 1;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.content-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.85;
+}
+
+.content-text strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.content-text em {
+  color: #c9a227;
+  font-style: normal;
+}
+
+/* ==========================================
+   FINAL SECTION
+   ========================================== */
+.final-section {
+  text-align: center;
+  padding: 6rem 2rem;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.final-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.final-line {
+  width: 60px;
+  height: 1px;
+  background: #c9a227;
+  margin: 0 auto 2rem;
+}
+
+.final-quote {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  margin-bottom: 2rem;
+}
+
+.final-instagram {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #c9a227;
+  text-decoration: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid rgba(201, 162, 39, 0.3);
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+.final-instagram:hover {
+  background: rgba(201, 162, 39, 0.1);
+  border-color: #c9a227;
+  transform: translateY(-2px);
+}
+
+/* ==========================================
+   CTA SECTION
+   ========================================== */
 .cta {
   padding: 6rem 2rem;
   text-align: center;
-  background: linear-gradient(to bottom, transparent, rgba(201, 162, 39, 0.05));
+  position: relative;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cta.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.cta-content {
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .cta h2 {
   font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(2rem, 5vw, 3rem);
-  letter-spacing: 0.1em;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.15em;
+  margin-bottom: 2rem;
 }
 
-.cta p {
-  font-family: 'DM Sans', sans-serif;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 2rem;
+.cta h2 span {
+  color: #c9a227;
 }
 
 .cta-btn {
   display: inline-block;
-  padding: 1rem 3rem;
-  background: #c9a227;
-  color: #0a0a0a;
-  text-decoration: none;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.25rem;
-  letter-spacing: 0.15em;
+  font-size: 1.1rem;
+  color: #0a0a0a;
+  background: #c9a227;
+  text-decoration: none;
+  letter-spacing: 0.2em;
+  padding: 1rem 2.5rem;
   transition: all 0.3s ease;
 }
 
@@ -312,10 +447,12 @@
   box-shadow: 0 10px 30px rgba(201, 162, 39, 0.3);
 }
 
-/* Footer */
+/* ==========================================
+   FOOTER
+   ========================================== */
 .footer {
   padding: 3rem 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .footer-content {
@@ -324,27 +461,17 @@
   text-align: center;
 }
 
-.footer-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.25rem;
-  letter-spacing: 0.1em;
-}
-
-.footer-logo span {
-  color: #c9a227;
-}
-
 .footer-links {
-  margin: 1.5rem 0;
   display: flex;
   justify-content: center;
   gap: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .footer-links a {
   font-family: 'DM Sans', sans-serif;
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
   text-decoration: none;
   transition: color 0.3s ease;
 }
@@ -355,11 +482,13 @@
 
 .footer-copy {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.25);
 }
 
-/* WhatsApp Float */
+/* ==========================================
+   WHATSAPP FLOAT
+   ========================================== */
 .whatsapp-float {
   position: fixed;
   bottom: 2rem;
@@ -382,20 +511,38 @@
   box-shadow: 0 6px 30px rgba(37, 211, 102, 0.5);
 }
 
-/* Animations */
-.fade-up {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* ==========================================
+   RESPONSIVE - TABLETS
+   ========================================== */
+@media (max-width: 1024px) {
+  .moving-image {
+    width: 220px;
+    height: 280px;
+  }
 
-.fade-up.visible {
-  opacity: 1;
-  transform: translateY(0);
+  .moving-image.position-left {
+    left: calc(50% - 350px);
+  }
+
+  .moving-image.position-right {
+    left: calc(50% + 130px);
+  }
+
+  .row-content {
+    max-width: 320px;
+  }
+
+  .content-name {
+    font-size: 4.5rem;
+  }
+
+  .content-text {
+    font-size: 1.05rem;
+  }
 }
 
 /* ==========================================
-   RESPONSIVE - TABLETS
+   RESPONSIVE - MÓVILES GRANDES Y TABLETS PEQUEÑAS
    ========================================== */
 @media (max-width: 768px) {
   .navbar {
@@ -418,20 +565,99 @@
 
   .hero h1 {
     font-size: clamp(1.75rem, 5vw, 2.5rem);
-    letter-spacing: 0.1em;
   }
 
-  .about-stats {
-    gap: 2rem;
+  .storytelling {
+    padding: 3rem 1rem;
   }
 
-  .instructor-card {
-    flex-direction: column;
-    text-align: center;
+  /* Imagen más pequeña en móvil */
+  .moving-image {
+    width: 140px;
+    height: 180px;
+    top: 35%;
   }
 
-  .instructor-info {
-    text-align: center;
+  .moving-image.position-left {
+    left: 5%;
+  }
+
+  .moving-image.position-right {
+    left: calc(100% - 145px);
+  }
+
+  .image-badge {
+    padding: 0.4rem 0.5rem;
+    bottom: 0.75rem;
+    left: 0.75rem;
+  }
+
+  .badge-number {
+    font-size: 1rem;
+  }
+
+  .badge-text {
+    font-size: 0.45rem;
+  }
+
+  /* Rows en móvil */
+  .story-row {
+    min-height: 60vh;
+    padding: 1.5rem 0;
+  }
+
+  .row-content {
+    max-width: 55%;
+    padding: 1rem;
+  }
+
+  .row-content.right {
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .row-content.left {
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  .content-tag {
+    font-size: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .content-name {
+    font-size: 2.5rem;
+  }
+
+  .content-role {
+    font-size: 0.8rem;
+  }
+
+  .content-number {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .content-text {
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .final-section {
+    padding: 4rem 1.5rem;
+  }
+
+  .final-quote {
+    font-size: 1.1rem;
+  }
+
+  .cta {
+    padding: 4rem 1.5rem;
+  }
+
+  .cta h2 {
+    font-size: 1.75rem;
   }
 }
 
@@ -459,33 +685,92 @@
 
   .hero h1 {
     font-size: 1.5rem;
-    letter-spacing: 0.08em;
   }
 
-  .about {
-    padding: 4rem 1.5rem;
+  .scroll-indicator {
+    bottom: 2rem;
   }
 
-  .about-stats {
-    flex-direction: column;
-    gap: 1.5rem;
+  .storytelling {
+    padding: 2rem 0.5rem;
   }
 
-  .instructor {
-    padding: 3rem 1.5rem 4rem;
-  }
-
-  .instructor-card {
-    padding: 1.5rem;
-  }
-
-  .instructor-image {
+  .moving-image {
     width: 120px;
-    height: 120px;
+    height: 155px;
+    top: 30%;
+  }
+
+  .moving-image.position-left {
+    left: 3%;
+  }
+
+  .moving-image.position-right {
+    left: calc(100% - 123px);
+  }
+
+  .image-badge {
+    padding: 0.3rem 0.4rem;
+    bottom: 0.5rem;
+    left: 0.5rem;
+  }
+
+  .badge-number {
+    font-size: 0.85rem;
+  }
+
+  .badge-text {
+    font-size: 0.4rem;
+  }
+
+  .story-row {
+    min-height: 55vh;
+    padding: 1rem 0;
+  }
+
+  .row-content {
+    max-width: 58%;
+    padding: 0.75rem;
+  }
+
+  .content-name {
+    font-size: 2rem;
+  }
+
+  .content-number {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .content-text {
+    font-size: 0.85rem;
+    line-height: 1.65;
+  }
+
+  .final-section {
+    padding: 3rem 1rem;
+  }
+
+  .final-quote {
+    font-size: 1rem;
+  }
+
+  .final-instagram {
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
   }
 
   .cta {
-    padding: 4rem 1.5rem;
+    padding: 3rem 1rem;
+  }
+
+  .cta h2 {
+    font-size: 1.5rem;
+  }
+
+  .cta-btn {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
   }
 
   .whatsapp-float {
@@ -518,11 +803,32 @@
     font-size: 1.25rem;
   }
 
-  .about h2 {
-    font-size: 1.5rem;
+  .moving-image {
+    width: 100px;
+    height: 130px;
   }
 
-  .stat-number {
-    font-size: 2rem;
+  .moving-image.position-left {
+    left: 2%;
+  }
+
+  .moving-image.position-right {
+    left: calc(100% - 102px);
+  }
+
+  .row-content {
+    max-width: 60%;
+  }
+
+  .content-name {
+    font-size: 1.75rem;
+  }
+
+  .content-text {
+    font-size: 0.8rem;
+  }
+
+  .cta h2 {
+    font-size: 1.35rem;
   }
 }

@@ -10,5 +10,9 @@ import { CommonModule } from '@angular/common';
   styleUrl: './productos.component.css'
 })
 export class ProductosComponent {
-  // Por ahora solo tenemos un curso
+  showDetails: boolean = false;
+
+  toggleDetails() {
+    this.showDetails = !this.showDetails;
+  }
 }

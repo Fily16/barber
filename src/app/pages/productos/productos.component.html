@@ -18,8 +18,8 @@
 
   <!-- Curso Principal -->
   <section class="curso-section">
-    <a [routerLink]="['/curso', 'basic-training']" class="curso-card-main">
-      <div class="curso-image">
+    <div class="curso-card-main">
+      <a [routerLink]="['/curso', 'basic-training']" class="curso-image">
         <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800" alt="Basic Training" />
         <div class="curso-overlay">
           <span class="play-icon">
@@ -28,16 +28,31 @@
             </svg>
           </span>
         </div>
-      </div>
+      </a>
+
+      <!-- Detalles del curso -->
       <div class="curso-info">
-        <h3>BASIC TRAINING</h3>
-        <p>Fundamentos esenciales para dominar el arte de la barbería profesional</p>
-        <div class="curso-details">
+        <div class="info-header" (click)="toggleDetails()">
+          <h3>Detalles del curso</h3>
+          <span class="toggle-arrow" [class.open]="showDetails">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+
+        <div class="info-content" [class.open]="showDetails">
+          <p>
+            Este curso es la introducción de entrenamiento básico que está diseñado para que aprendas el método utilizado por RaphlCuts con el cual ha generado resultados épicos! Que están plasmados en cada uno de los videos tutoriales, con información precisa para lograr la eficiencia que se requiere a la hora de cortar cabello masculino.
+          </p>
+        </div>
+
+        <div class="curso-footer">
           <span class="curso-meta">5 VIDEOS</span>
-          <span class="curso-arrow">ACCEDER →</span>
+          <a [routerLink]="['/curso', 'basic-training']" class="curso-btn">ACCEDER</a>
         </div>
       </div>
-    </a>
+    </div>
   </section>
 
   <!-- Footer -->

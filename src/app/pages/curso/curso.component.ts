@@ -54,7 +54,7 @@ export class CursoComponent implements OnInit {
     'basic-training': {
       id: 'basic-training',
       titulo: 'BASIC TRAINING',
-      descripcion: 'Fundamentos esenciales para dominar el arte de la barbería profesional.',
+      descripcion: 'Este curso es la introducción de entrenamiento básico que está diseñado para que aprendas el método utilizado por RaphlCuts con el cual ha generado resultados épicos! Que están plasmados en cada uno de los videos tutoriales, con información precisa para lograr la eficiencia que se requiere a la hora de cortar cabello masculino.',
       teoria: {
         id: 'basic-teoria',
         titulo: 'Fundamentos de la Barbería',

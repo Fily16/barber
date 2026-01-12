@@ -61,7 +61,7 @@
   animation: fadeInUp 1s ease 0.3s both;
 }
 
-/* Option Button - Estilo Minimalista */
+/* Option Button - Estilo Minimalista con forma de botón */
 .option-btn {
   position: relative;
   text-decoration: none;
@@ -71,6 +71,13 @@
   align-items: center;
   gap: 0.5rem;
   transition: all 0.4s ease;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.option-btn:hover {
+  border-color: rgba(201, 162, 39, 0.4);
+  background: rgba(201, 162, 39, 0.05);
 }
 
 .btn-text {
@@ -82,19 +89,19 @@
 }
 
 .btn-line {
-  width: 0;
+  width: 30px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #c9a227, transparent);
-  transition: width 0.4s ease;
+  background: rgba(201, 162, 39, 0.4);
+  transition: all 0.4s ease;
 }
 
 .option-btn:hover .btn-text {
   color: #fff;
-  text-shadow: 0 0 20px rgba(201, 162, 39, 0.5);
 }
 
 .option-btn:hover .btn-line {
-  width: 100%;
+  width: 60px;
+  background: #c9a227;
 }
 
 /* Footer */

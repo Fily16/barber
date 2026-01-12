@@ -1,6 +1,6 @@
-import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-nosotros',
@@ -10,27 +10,83 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   styleUrl: './nosotros.component.css'
 })
 export class NosotrosComponent implements OnInit {
-  private isBrowser: boolean;
-
-  constructor(@Inject(PLATFORM_ID) platformId: Object) {
-    this.isBrowser = isPlatformBrowser(platformId);
-  }
+  visibleSections: boolean[] = [false, false, false, false, false, false];
+  currentImagePosition: string = 'left';
+  showImage: boolean = false;
 
   ngOnInit() {
-    if (this.isBrowser) {
-      this.initScrollAnimations();
-    }
+    this.checkVisibility();
+    this.updateImagePosition();
   }
 
-  private initScrollAnimations() {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, { threshold: 0.1 });
+  @HostListener('window:scroll')
+  onScroll() {
+    this.checkVisibility();
+    this.updateImagePosition();
+  }
 
-    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+  checkVisibility() {
+    const blocks = document.querySelectorAll('.row-content, .final-section, .cta');
+    blocks.forEach((block, index) => {
+      const rect = block.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      if (rect.top < windowHeight * 0.75) {
+        this.visibleSections[index] = true;
+      }
+    });
+  }
+
+  updateImagePosition() {
+    const rows = Array.from(document.querySelectorAll('.story-row'));
+    const windowHeight = window.innerHeight;
+    const centerY = windowHeight * 0.4;
+
+    // Obtener los límites: primer y último story-row
+    const firstRow = rows[0] as HTMLElement;
+    const lastRow = rows[rows.length - 1] as HTMLElement;
+
+    if (!firstRow || !lastRow) return;
+
+    const firstRowRect = firstRow.getBoundingClientRect();
+    const lastRowRect = lastRow.getBoundingClientRect();
+
+    // Verificar si estamos ANTES del primer row (arriba) - OCULTAR IMAGEN
+    if (firstRowRect.top > centerY) {
+      this.showImage = false;
+      return;
+    }
+
+    // Verificar si estamos DESPUÉS del último row (abajo) - OCULTAR IMAGEN
+    if (lastRowRect.bottom < centerY) {
+      this.showImage = false;
+      return;
+    }
+
+    // Estamos dentro del rango - MOSTRAR IMAGEN
+    this.showImage = true;
+
+    // Solo actualizar la posición si estamos dentro del rango
+    let closestRow: HTMLElement | null = null;
+    let closestDistance = Infinity;
+
+    for (const row of rows) {
+      const htmlRow = row as HTMLElement;
+      const rect = htmlRow.getBoundingClientRect();
+      const rowCenter = rect.top + rect.height / 2;
+      const distance = Math.abs(rowCenter - centerY);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestRow = htmlRow;
+      }
+    }
+
+    if (closestRow) {
+      const position = closestRow.getAttribute('data-position');
+      if (position) {
+        this.currentImagePosition = position;
+      }
+    }
   }
 }
