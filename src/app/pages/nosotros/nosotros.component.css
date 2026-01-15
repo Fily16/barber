@@ -90,22 +90,44 @@
    ========================================== */
 .hero {
   height: 100vh;
+  height: 100dvh; /* Dynamic viewport height para iOS */
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  /* Safe area para iPhone con Dynamic Island */
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 .hero-bg {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Extender más allá de safe areas en iOS */
+  margin-top: calc(-1 * env(safe-area-inset-top, 0px));
+  margin-left: calc(-1 * env(safe-area-inset-left, 0px));
+  margin-right: calc(-1 * env(safe-area-inset-right, 0px));
+  width: calc(100% + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px));
+  height: calc(100% + env(safe-area-inset-top, 0px));
 }
 
 .hero-video {
   width: 100%;
+  min-width: 100vw; /* Forzar ancho completo del viewport */
   height: 100%;
+  min-height: 100%;
   object-fit: cover;
+  -webkit-object-fit: cover; /* Safari iOS */
+  /* Asegurar que el video se posicione correctamente */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .hero-overlay {
