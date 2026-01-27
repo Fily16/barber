@@ -1,0 +1,276 @@
+<!-- Panel de Administración -->
+<div class="admin-container">
+  <div class="grain-overlay"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a routerLink="/" class="nav-logo">
+      <img src="imagen/logo%20Raplh.PNG" alt="Ralph Cuts" class="nav-logo-img" />
+    </a>
+    <span class="nav-title">PANEL ADMIN</span>
+    <button *ngIf="isAuthenticated" class="logout-btn" (click)="logout()">SALIR</button>
+  </nav>
+
+  <!-- ============== LOGIN ADMIN ============== -->
+  <div class="login-screen" *ngIf="!isAuthenticated">
+    <div class="login-container">
+      <div class="login-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2a5 5 0 0 1 5 5v3H7V7a5 5 0 0 1 5-5z"></path>
+          <rect x="3" y="10" width="18" height="12" rx="2"></rect>
+          <circle cx="12" cy="16" r="1"></circle>
+        </svg>
+      </div>
+      <h2>ADMINISTRADOR</h2>
+      <p class="login-subtitle">Acceso restringido</p>
+
+      <form class="login-form" (ngSubmit)="login()">
+        <div class="input-group">
+          <input type="text" [(ngModel)]="username" name="username" placeholder="Usuario" autocomplete="off" />
+        </div>
+        <div class="input-group">
+          <input type="password" [(ngModel)]="password" name="password" placeholder="Contraseña" />
+        </div>
+        <div class="login-error" *ngIf="loginError">{{ loginError }}</div>
+        <button type="submit" class="login-btn" [disabled]="isLoading">
+          {{ isLoading ? 'CARGANDO...' : 'INGRESAR' }}
+        </button>
+      </form>
+
+      <a routerLink="/" class="help-link">← Volver al inicio</a>
+    </div>
+  </div>
+
+  <!-- ============== PANEL PRINCIPAL ============== -->
+  <div class="admin-main" *ngIf="isAuthenticated">
+
+    <!-- Mensaje de éxito -->
+    <div class="success-toast" *ngIf="successMessage">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      {{ successMessage }}
+    </div>
+
+    <!-- Header -->
+    <header class="admin-header">
+      <h1>Gestión de Estudiantes</h1>
+      <p>{{ students.length }} estudiantes registrados</p>
+    </header>
+
+    <!-- Acciones -->
+    <div class="admin-actions">
+      <button class="btn-primary" (click)="openNewStudentModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        NUEVO ESTUDIANTE
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-container" *ngIf="isLoading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Tabla de estudiantes -->
+    <div class="table-container" *ngIf="!isLoading">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Nombre</th>
+            <th>Cursos</th>
+            <th>Estado</th>
+            <th>Último acceso</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let student of students" [class.inactive]="!student.active">
+            <td class="username">{{ student.username }}</td>
+            <td>{{ student.fullName }}</td>
+            <td class="courses-cell">
+              <div class="course-badges">
+                <span class="course-badge" *ngFor="let uc of student.courses"
+                      [class.expired]="!uc.accessValid"
+                      [class.active]="uc.accessValid">
+                  {{ uc.courseTitle }}
+                  <span class="plan-type">{{ uc.planType === 'UNLIMITED' ? '∞' : uc.expiresAt ? (formatDate(uc.expiresAt)) : '' }}</span>
+                  <button class="revoke-btn" *ngIf="uc.active" (click)="revokeAccess(uc)" title="Revocar acceso">×</button>
+                </span>
+                <span class="no-courses" *ngIf="student.courses.length === 0">Sin cursos</span>
+              </div>
+            </td>
+            <td>
+              <span class="status-badge" [class.active]="student.active" [class.inactive]="!student.active">
+                {{ student.active ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="date-cell">{{ formatDate(student.lastLogin) }}</td>
+            <td class="actions-cell">
+              <button class="action-btn" (click)="openAssignModal(student)" title="Asignar curso">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 5v14M5 12h14"></path>
+                </svg>
+              </button>
+              <button class="action-btn" (click)="openEditStudentModal(student)" title="Editar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="action-btn" (click)="openPasswordModal(student)" title="Cambiar contraseña">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </button>
+              <button class="action-btn" (click)="toggleStatus(student)" [title]="student.active ? 'Desactivar' : 'Activar'">
+                <svg *ngIf="student.active" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                  <line x1="1" y1="1" x2="23" y2="23"></line>
+                </svg>
+                <svg *ngIf="!student.active" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+              <button class="action-btn delete" (click)="deleteStudent(student)" title="Eliminar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="students.length === 0">
+            <td colspan="6" class="empty-state">No hay estudiantes registrados</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MODAL: CREAR/EDITAR ESTUDIANTE ============== -->
+<div class="modal-overlay" *ngIf="showStudentModal" (click)="closeStudentModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ editingStudent ? 'Editar Estudiante' : 'Nuevo Estudiante' }}</h3>
+      <button class="close-btn" (click)="closeStudentModal()">×</button>
+    </div>
+    <form (ngSubmit)="saveStudent()">
+      <div class="form-group">
+        <label>Usuario *</label>
+        <input type="text" [(ngModel)]="studentForm.username" name="username" placeholder="usuario123" />
+      </div>
+      <div class="form-group">
+        <label>{{ editingStudent ? 'Nueva Contraseña (dejar vacío para mantener)' : 'Contraseña *' }}</label>
+        <input type="password" [(ngModel)]="studentForm.password" name="password" placeholder="••••••" />
+      </div>
+      <div class="form-group">
+        <label>Nombre Completo *</label>
+        <input type="text" [(ngModel)]="studentForm.fullName" name="fullName" placeholder="Juan Pérez" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" [(ngModel)]="studentForm.email" name="email" placeholder="correo@ejemplo.com" />
+      </div>
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="text" [(ngModel)]="studentForm.phone" name="phone" placeholder="999888777" />
+      </div>
+      <div class="form-error" *ngIf="studentFormError">{{ studentFormError }}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="closeStudentModal()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============== MODAL: ASIGNAR CURSO ============== -->
+<div class="modal-overlay" *ngIf="showAssignModal" (click)="closeAssignModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Asignar Curso</h3>
+      <button class="close-btn" (click)="closeAssignModal()">×</button>
+    </div>
+    <p class="modal-subtitle">Estudiante: <strong>{{ selectedStudent?.fullName }}</strong></p>
+    <form (ngSubmit)="assignCourse()">
+      <div class="form-group">
+        <label>Curso *</label>
+        <select [(ngModel)]="assignForm.courseId" name="courseId">
+          <option *ngFor="let course of courses" [value]="course.id">{{ course.title }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tipo de Plan *</label>
+        <select [(ngModel)]="assignForm.planType" name="planType">
+          <option value="UNLIMITED">Ilimitado (acceso permanente)</option>
+          <option value="TEMPORAL">Temporal (por meses)</option>
+        </select>
+      </div>
+      <div class="form-group" *ngIf="assignForm.planType === 'TEMPORAL'">
+        <label>Duración (meses) *</label>
+        <input type="number" [(ngModel)]="assignForm.durationMonths" name="durationMonths" min="1" max="24" />
+      </div>
+      <div class="form-error" *ngIf="assignFormError">{{ assignFormError }}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="closeAssignModal()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Asignando...' : 'Asignar Curso' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============== MODAL: CAMBIAR CONTRASEÑA ============== -->
+<div class="modal-overlay" *ngIf="showPasswordModal" (click)="closePasswordModal()">
+  <div class="modal-content modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Cambiar Contraseña</h3>
+      <button class="close-btn" (click)="closePasswordModal()">×</button>
+    </div>
+    <p class="modal-subtitle">Usuario: <strong>{{ passwordStudent?.username }}</strong></p>
+    <form (ngSubmit)="savePassword()">
+      <div class="form-group">
+        <label>Nueva Contraseña *</label>
+        <input type="password" [(ngModel)]="newPassword" name="newPassword" placeholder="Mínimo 6 caracteres" />
+      </div>
+      <div class="form-error" *ngIf="passwordError">{{ passwordError }}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="closePasswordModal()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Guardando...' : 'Cambiar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============== MODAL: SESIÓN ACTIVA ============== -->
+<div class="modal-overlay session-modal-overlay" *ngIf="showSessionModal">
+  <div class="modal-content session-modal" (click)="$event.stopPropagation()">
+    <div class="session-modal-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </div>
+    <h3>Sesión Activa Detectada</h3>
+    <p class="session-text">Ya tienes una sesión iniciada en otro dispositivo. Si continúas, la sesión anterior se cerrará automáticamente.</p>
+    <div class="session-modal-actions">
+      <button class="btn-secondary" (click)="cancelForceLogin()">Cancelar</button>
+      <button class="btn-primary" (click)="confirmForceLogin()" [disabled]="isLoading">
+        {{ isLoading ? 'Cerrando...' : 'Cerrar y Continuar' }}
+      </button>
+    </div>
+  </div>
+</div>

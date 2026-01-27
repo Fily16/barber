@@ -51,7 +51,9 @@
           {{ loginError }}
         </div>
 
-        <button type="submit" class="login-btn">ACCEDER</button>
+        <button type="submit" class="login-btn" [disabled]="isLoading">
+          {{ isLoading ? 'CARGANDO...' : 'ACCEDER' }}
+        </button>
       </form>
 
       <a href="https://wa.me/51970457642" target="_blank" class="help-link">¿Necesitas ayuda?</a>
@@ -92,7 +94,7 @@
     <section class="course-sections">
 
       <!-- TEORÍA -->
-      <div class="section-block">
+      <div class="section-block" *ngIf="curso.teoria">
         <div class="section-header" (click)="toggleSection('teoria')">
           <div class="section-info">
             <span class="section-number">01</span>
@@ -108,9 +110,9 @@
           </div>
         </div>
         <div class="section-content" [class.open]="openSection === 'teoria'">
-          <div class="video-item" (click)="playVideo(curso.teoria)">
+          <div class="video-item" (click)="playVideo(curso.teoria!)">
             <div class="video-thumb">
-              <img [src]="curso.teoria.thumbnail" [alt]="curso.teoria.titulo" />
+              <img [src]="curso.teoria!.thumbnail" [alt]="curso.teoria!.titulo" />
               <div class="play-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -118,8 +120,8 @@
               </div>
             </div>
             <div class="video-details">
-              <h4>{{ curso.teoria.titulo }}</h4>
-              <span class="duration">{{ curso.teoria.duracion }}</span>
+              <h4>{{ curso.teoria!.titulo }}</h4>
+              <span class="duration">{{ curso.teoria!.duracion }}</span>
             </div>
           </div>
         </div>
@@ -195,7 +197,46 @@
 </div>
 
 <!-- No encontrado -->
-<div class="not-found" *ngIf="!curso">
+<div class="not-found" *ngIf="courseNotFound">
   <h2>Curso no encontrado</h2>
   <a routerLink="/productos">Volver</a>
+</div>
+
+<!-- ============== MODAL: SESIÓN ACTIVA ============== -->
+<div class="session-modal-overlay" *ngIf="showSessionModal">
+  <div class="session-modal">
+    <div class="session-modal-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    </div>
+    <h3>Sesión Activa Detectada</h3>
+    <p>Ya tienes una sesión iniciada en otro dispositivo. Si continúas, la sesión anterior se cerrará automáticamente.</p>
+    <div class="session-modal-actions">
+      <button class="btn-cancel" (click)="cancelForceLogin()">Cancelar</button>
+      <button class="btn-confirm" (click)="confirmForceLogin()">
+        {{ isLoading ? 'Cerrando...' : 'Cerrar y Continuar' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============== MODAL: SESIÓN CERRADA ============== -->
+<div class="session-modal-overlay session-closed" *ngIf="showSessionClosedModal">
+  <div class="session-modal">
+    <div class="session-modal-icon closed">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="15" y1="9" x2="9" y2="15"></line>
+        <line x1="9" y1="9" x2="15" y2="15"></line>
+      </svg>
+    </div>
+    <h3>Sesión Cerrada</h3>
+    <p>Tu sesión fue cerrada porque se inició sesión en otro dispositivo. Debes iniciar sesión nuevamente para continuar.</p>
+    <div class="session-modal-actions">
+      <button class="btn-confirm" (click)="acceptSessionClosed()">Entendido</button>
+    </div>
+  </div>
 </div>
