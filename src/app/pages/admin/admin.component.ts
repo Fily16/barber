@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -19,6 +19,11 @@ export class AdminComponent implements OnInit, OnDestroy {
   isAuthenticated = false;
   isLoading = false;
   currentView: 'students' | 'courses' = 'students';
+
+  // Mensaje de servidor despertando
+  serverWakingUp = false;
+  loadingMessage = 'Cargando...';
+  private loadingTimer: any = null;
 
   // Login
   username = '';
@@ -69,7 +74,9 @@ export class AdminComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private adminService: AdminService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit() {
@@ -84,6 +91,42 @@ export class AdminComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    this.clearLoadingTimer();
+  }
+
+  // ==================== LOADING CON MENSAJE AMIGABLE ====================
+
+  private startLoading(message: string = 'Cargando...'): void {
+    this.isLoading = true;
+    this.loadingMessage = message;
+    this.serverWakingUp = false;
+    this.clearLoadingTimer();
+
+    // Si tarda más de 5 segundos, mostrar mensaje amigable
+    this.loadingTimer = setTimeout(() => {
+      this.ngZone.run(() => {
+        this.serverWakingUp = true;
+        this.loadingMessage = '¡El servidor está despertando! ☕ Esto puede tomar unos segundos...';
+        this.cdr.detectChanges();
+      });
+    }, 5000);
+
+    this.cdr.detectChanges();
+  }
+
+  private stopLoading(): void {
+    this.isLoading = false;
+    this.serverWakingUp = false;
+    this.loadingMessage = 'Cargando...';
+    this.clearLoadingTimer();
+    this.cdr.detectChanges();
+  }
+
+  private clearLoadingTimer(): void {
+    if (this.loadingTimer) {
+      clearTimeout(this.loadingTimer);
+      this.loadingTimer = null;
+    }
   }
 
   // ==================== LOGIN ====================
@@ -91,10 +134,11 @@ export class AdminComponent implements OnInit, OnDestroy {
   login(forceLogin: boolean = false): void {
     if (!this.username || !this.password) {
       this.loginError = 'Ingresa usuario y contraseña';
+      this.cdr.detectChanges();
       return;
     }
 
-    this.isLoading = true;
+    this.startLoading('Iniciando sesión...');
     this.loginError = '';
     this.showSessionModal = false;
 
@@ -106,37 +150,41 @@ export class AdminComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          if (response.success && response.data) {
-            // Verificar si hay sesión activa en otro dispositivo
-            if (response.data.hasActiveSession) {
-              this.isLoading = false;
-              this.showSessionModal = true;
-              return;
-            }
+          this.ngZone.run(() => {
+            if (response.success && response.data) {
+              // Verificar si hay sesión activa en otro dispositivo
+              if (response.data.hasActiveSession) {
+                this.stopLoading();
+                this.showSessionModal = true;
+                return;
+              }
 
-            // Verificar rol de admin
-            if (response.data.role === 'ADMIN') {
-              this.isAuthenticated = true;
-              this.loadData();
+              // Verificar rol de admin
+              if (response.data.role === 'ADMIN') {
+                this.isAuthenticated = true;
+                this.loadData();
+              } else {
+                this.loginError = 'No tienes permisos de administrador';
+                this.authService.clearAuth();
+                this.stopLoading();
+              }
             } else {
-              this.loginError = 'No tienes permisos de administrador';
-              this.authService.clearAuth();
-              this.isLoading = false;
+              this.loginError = response.message || 'Error al iniciar sesión';
+              this.stopLoading();
             }
-          } else {
-            this.loginError = response.message || 'Error al iniciar sesión';
-            this.isLoading = false;
-          }
+          });
         },
         error: (error) => {
-          this.isLoading = false;
-          if (error.sessionInvalid) {
-            this.loginError = 'Sesión cerrada. Se inició sesión en otro dispositivo.';
-          } else if (error.status === 401) {
-            this.loginError = 'Credenciales incorrectas';
-          } else {
-            this.loginError = 'Error de conexión';
-          }
+          this.ngZone.run(() => {
+            this.stopLoading();
+            if (error.sessionInvalid) {
+              this.loginError = 'Sesión cerrada. Se inició sesión en otro dispositivo.';
+            } else if (error.status === 401) {
+              this.loginError = 'Credenciales incorrectas';
+            } else {
+              this.loginError = 'Error de conexión';
+            }
+          });
         }
       });
   }
@@ -147,19 +195,25 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   cancelForceLogin(): void {
     this.showSessionModal = false;
-    this.isLoading = false;
+    this.stopLoading();
   }
 
   logout(): void {
     this.authService.logout().pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
-        this.isAuthenticated = false;
-        this.username = '';
-        this.password = '';
+        this.ngZone.run(() => {
+          this.isAuthenticated = false;
+          this.username = '';
+          this.password = '';
+          this.cdr.detectChanges();
+        });
       },
       error: () => {
-        this.authService.clearAuth();
-        this.isAuthenticated = false;
+        this.ngZone.run(() => {
+          this.authService.clearAuth();
+          this.isAuthenticated = false;
+          this.cdr.detectChanges();
+        });
       }
     });
   }
@@ -167,19 +221,24 @@ export class AdminComponent implements OnInit, OnDestroy {
   // ==================== CARGA DE DATOS ====================
 
   loadData(): void {
-    this.isLoading = true;
+    this.startLoading('Cargando datos...');
 
     forkJoin({
       students: this.adminService.getAllStudents(),
       courses: this.adminService.getAllCourses()
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (result) => {
-        this.students = result.students.data || [];
-        this.courses = result.courses.data || [];
-        this.isLoading = false;
+        this.ngZone.run(() => {
+          this.students = result.students.data || [];
+          this.courses = result.courses.data || [];
+          this.stopLoading();
+        });
       },
-      error: () => {
-        this.isLoading = false;
+      error: (error) => {
+        this.ngZone.run(() => {
+          console.error('Error loading data:', error);
+          this.stopLoading();
+        });
       }
     });
   }
@@ -197,6 +256,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     };
     this.studentFormError = '';
     this.showStudentModal = true;
+    this.cdr.detectChanges();
   }
 
   openEditStudentModal(student: UserResponse): void {
@@ -210,25 +270,29 @@ export class AdminComponent implements OnInit, OnDestroy {
     };
     this.studentFormError = '';
     this.showStudentModal = true;
+    this.cdr.detectChanges();
   }
 
   closeStudentModal(): void {
     this.showStudentModal = false;
     this.editingStudent = null;
+    this.cdr.detectChanges();
   }
 
   saveStudent(): void {
     if (!this.studentForm.username || !this.studentForm.fullName) {
       this.studentFormError = 'Usuario y nombre son requeridos';
+      this.cdr.detectChanges();
       return;
     }
 
     if (!this.editingStudent && !this.studentForm.password) {
       this.studentFormError = 'La contraseña es requerida';
+      this.cdr.detectChanges();
       return;
     }
 
-    this.isLoading = true;
+    this.startLoading(this.editingStudent ? 'Actualizando estudiante...' : 'Creando estudiante...');
     this.studentFormError = '';
 
     const request = this.editingStudent
@@ -237,36 +301,58 @@ export class AdminComponent implements OnInit, OnDestroy {
 
     request.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
-        this.showSuccess(this.editingStudent ? 'Estudiante actualizado' : 'Estudiante creado');
-        this.closeStudentModal();
-        this.loadData();
+        this.ngZone.run(() => {
+          this.showSuccess(this.editingStudent ? 'Estudiante actualizado' : 'Estudiante creado');
+          this.closeStudentModal();
+          this.loadData();
+        });
       },
       error: (error) => {
-        this.studentFormError = error.error?.message || 'Error al guardar';
-        this.isLoading = false;
+        this.ngZone.run(() => {
+          this.studentFormError = error.error?.message || 'Error al guardar';
+          this.stopLoading();
+        });
       }
     });
   }
 
   toggleStatus(student: UserResponse): void {
+    this.startLoading('Actualizando estado...');
+
     this.adminService.toggleStudentStatus(student.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.showSuccess(`Estudiante ${student.active ? 'desactivado' : 'activado'}`);
-          this.loadData();
+          this.ngZone.run(() => {
+            this.showSuccess(`Estudiante ${student.active ? 'desactivado' : 'activado'}`);
+            this.loadData();
+          });
+        },
+        error: () => {
+          this.ngZone.run(() => {
+            this.stopLoading();
+          });
         }
       });
   }
 
   deleteStudent(student: UserResponse): void {
     if (confirm(`¿Eliminar a ${student.fullName}? Esta acción no se puede deshacer.`)) {
+      this.startLoading('Eliminando estudiante...');
+
       this.adminService.deleteStudent(student.id)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
-            this.showSuccess('Estudiante eliminado');
-            this.loadData();
+            this.ngZone.run(() => {
+              this.showSuccess('Estudiante eliminado');
+              this.loadData();
+            });
+          },
+          error: () => {
+            this.ngZone.run(() => {
+              this.stopLoading();
+            });
           }
         });
     }
@@ -279,33 +365,41 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.newPassword = '';
     this.passwordError = '';
     this.showPasswordModal = true;
+    this.cdr.detectChanges();
   }
 
   closePasswordModal(): void {
     this.showPasswordModal = false;
     this.passwordStudent = null;
+    this.cdr.detectChanges();
   }
 
   savePassword(): void {
     if (!this.newPassword || this.newPassword.length < 6) {
       this.passwordError = 'La contraseña debe tener al menos 6 caracteres';
+      this.cdr.detectChanges();
       return;
     }
 
     if (!this.passwordStudent) return;
 
-    this.isLoading = true;
+    this.startLoading('Actualizando contraseña...');
+
     this.adminService.resetPassword(this.passwordStudent.id, this.newPassword)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.showSuccess('Contraseña actualizada');
-          this.closePasswordModal();
-          this.isLoading = false;
+          this.ngZone.run(() => {
+            this.showSuccess('Contraseña actualizada');
+            this.closePasswordModal();
+            this.stopLoading();
+          });
         },
         error: (error) => {
-          this.passwordError = error.error?.message || 'Error al cambiar contraseña';
-          this.isLoading = false;
+          this.ngZone.run(() => {
+            this.passwordError = error.error?.message || 'Error al cambiar contraseña';
+            this.stopLoading();
+          });
         }
       });
   }
@@ -322,45 +416,61 @@ export class AdminComponent implements OnInit, OnDestroy {
     };
     this.assignFormError = '';
     this.showAssignModal = true;
+    this.cdr.detectChanges();
   }
 
   closeAssignModal(): void {
     this.showAssignModal = false;
     this.selectedStudent = null;
+    this.cdr.detectChanges();
   }
 
   assignCourse(): void {
     if (!this.assignForm.courseId) {
       this.assignFormError = 'Selecciona un curso';
+      this.cdr.detectChanges();
       return;
     }
 
-    this.isLoading = true;
+    this.startLoading('Asignando curso...');
     this.assignFormError = '';
 
     this.adminService.assignCourse(this.assignForm)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.showSuccess('Curso asignado exitosamente');
-          this.closeAssignModal();
-          this.loadData();
+          this.ngZone.run(() => {
+            this.showSuccess('Curso asignado exitosamente');
+            this.closeAssignModal();
+            this.loadData();
+          });
         },
         error: (error) => {
-          this.assignFormError = error.error?.message || 'Error al asignar curso';
-          this.isLoading = false;
+          this.ngZone.run(() => {
+            this.assignFormError = error.error?.message || 'Error al asignar curso';
+            this.stopLoading();
+          });
         }
       });
   }
 
   revokeAccess(userCourse: UserCourseResponse): void {
     if (confirm(`¿Revocar acceso al curso ${userCourse.courseTitle}?`)) {
+      this.startLoading('Revocando acceso...');
+
       this.adminService.revokeAccess(userCourse.id)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
-            this.showSuccess('Acceso revocado');
-            this.loadData();
+            this.ngZone.run(() => {
+              this.showSuccess('Acceso revocado');
+              this.loadData();
+            });
+          },
+          error: () => {
+            this.ngZone.run(() => {
+              this.stopLoading();
+            });
           }
         });
     }
@@ -370,8 +480,11 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   showSuccess(message: string): void {
     this.successMessage = message;
-    this.isLoading = false;
-    setTimeout(() => this.successMessage = '', 3000);
+    this.stopLoading();
+    setTimeout(() => {
+      this.successMessage = '';
+      this.cdr.detectChanges();
+    }, 3000);
   }
 
   getCourseName(courseId: number): string {

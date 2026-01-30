@@ -32,8 +32,18 @@
           <input type="password" [(ngModel)]="password" name="password" placeholder="Contraseña" />
         </div>
         <div class="login-error" *ngIf="loginError">{{ loginError }}</div>
+
+        <!-- Loading message para login -->
+        <div class="login-loading" *ngIf="isLoading">
+          <div class="spinner-small"></div>
+          <p class="loading-message-login">{{ loadingMessage }}</p>
+          <p class="loading-submessage-login" *ngIf="serverWakingUp">
+            🚀 ¡No te preocupes! El servidor está despertando...
+          </p>
+        </div>
+
         <button type="submit" class="login-btn" [disabled]="isLoading">
-          {{ isLoading ? 'CARGANDO...' : 'INGRESAR' }}
+          {{ isLoading ? 'CONECTANDO...' : 'INGRESAR' }}
         </button>
       </form>
 
@@ -72,6 +82,10 @@
     <!-- Loading -->
     <div class="loading-container" *ngIf="isLoading">
       <div class="spinner"></div>
+      <p class="loading-message">{{ loadingMessage }}</p>
+      <p class="loading-submessage" *ngIf="serverWakingUp">
+        🚀 No te preocupes, la página no se ha colgado. ¡Ya casi está!
+      </p>
     </div>
 
     <!-- Tabla de estudiantes -->
