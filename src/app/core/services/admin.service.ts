@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApiResponse, CourseResponse, UserCourseResponse } from '../models';
+import { ApiResponse, CourseResponse, UserCourseResponse, VideoResponse } from '../models';
 
 export interface UserResponse {
   id: number;
@@ -30,6 +30,17 @@ export interface AssignCourseRequest {
   courseId: number;
   planType: 'UNLIMITED' | 'TEMPORAL';
   durationMonths?: number;
+}
+
+export interface CreateVideoRequest {
+  courseId: number;
+  title: string;
+  description?: string;
+  videoUrl: string;
+  thumbnailUrl?: string;
+  duration?: string;
+  type: 'THEORY' | 'PRACTICE';
+  orderIndex?: number;
 }
 
 @Injectable({
@@ -76,6 +87,24 @@ export class AdminService {
     return this.http.get<ApiResponse<CourseResponse[]>>(`${this.API_URL}/courses`);
   }
 
+  getCourse(id: number): Observable<ApiResponse<CourseResponse>> {
+    return this.http.get<ApiResponse<CourseResponse>>(`${this.API_URL}/courses/${id}`);
+  }
+
+  // ==================== VIDEOS ====================
+
+  createVideo(data: CreateVideoRequest): Observable<ApiResponse<VideoResponse>> {
+    return this.http.post<ApiResponse<VideoResponse>>(`${this.API_URL}/videos`, data);
+  }
+
+  updateVideo(id: number, data: CreateVideoRequest): Observable<ApiResponse<VideoResponse>> {
+    return this.http.put<ApiResponse<VideoResponse>>(`${this.API_URL}/videos/${id}`, data);
+  }
+
+  deleteVideo(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.API_URL}/videos/${id}`);
+  }
+
   // ==================== ASIGNACIÓN DE CURSOS ====================
 
   assignCourse(data: AssignCourseRequest): Observable<ApiResponse<UserCourseResponse>> {
@@ -88,7 +117,7 @@ export class AdminService {
 
   extendAccess(userCourseId: number, months: number): Observable<ApiResponse<UserCourseResponse>> {
     return this.http.patch<ApiResponse<UserCourseResponse>>(
-      `${this.API_URL}/user-courses/${userCourseId}/extend`, 
+      `${this.API_URL}/user-courses/${userCourseId}/extend`,
       { months }
     );
   }

@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
-import { AdminService, UserResponse, CreateUserRequest, AssignCourseRequest } from '../../core/services/admin.service';
-import { CourseResponse, UserCourseResponse } from '../../core/models';
+import { AdminService, UserResponse, CreateUserRequest, AssignCourseRequest, CreateVideoRequest } from '../../core/services/admin.service';
+import { CourseResponse, UserCourseResponse, VideoResponse } from '../../core/models';
 
 @Component({
   selector: 'app-admin',
@@ -18,7 +18,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   // Estados de vista
   isAuthenticated = false;
   isLoading = false;
-  currentView: 'students' | 'courses' = 'students';
+  currentView: 'students' | 'videos' = 'students';
 
   // Mensaje de servidor despertando
   serverWakingUp = false;
@@ -65,6 +65,22 @@ export class AdminComponent implements OnInit, OnDestroy {
   passwordStudent: UserResponse | null = null;
   newPassword = '';
   passwordError = '';
+
+  // ==================== VIDEOS ====================
+  showVideoModal = false;
+  editingVideo: VideoResponse | null = null;
+  selectedCourseForVideos: CourseResponse | null = null;
+  videoForm: CreateVideoRequest = {
+    courseId: 0,
+    title: '',
+    description: '',
+    videoUrl: '',
+    thumbnailUrl: '',
+    duration: '',
+    type: 'PRACTICE',
+    orderIndex: 0
+  };
+  videoFormError = '';
 
   // Mensajes
   successMessage = '';
@@ -124,6 +140,21 @@ export class AdminComponent implements OnInit, OnDestroy {
       clearTimeout(this.loadingTimer);
       this.loadingTimer = null;
     }
+  }
+
+  // ==================== NAVEGACIÓN ====================
+
+  switchView(view: 'students' | 'videos'): void {
+    this.currentView = view;
+    if (view === 'videos' && this.courses.length > 0 && !this.selectedCourseForVideos) {
+      this.selectedCourseForVideos = this.courses[0];
+    }
+    this.cdr.detectChanges();
+  }
+
+  selectCourseForVideos(course: CourseResponse): void {
+    this.selectedCourseForVideos = course;
+    this.cdr.detectChanges();
   }
 
   // ==================== LOGIN ====================
@@ -233,6 +264,12 @@ export class AdminComponent implements OnInit, OnDestroy {
         console.log('Datos cargados:', result);
         this.students = result.students.data || [];
         this.courses = result.courses.data || [];
+
+        // Seleccionar primer curso por defecto para videos
+        if (this.courses.length > 0 && !this.selectedCourseForVideos) {
+          this.selectedCourseForVideos = this.courses[0];
+        }
+
         this.stopLoading();
       },
       error: (error) => {
@@ -449,6 +486,171 @@ export class AdminComponent implements OnInit, OnDestroy {
           }
         });
     }
+  }
+
+  // ==================== GESTIÓN DE VIDEOS ====================
+
+  openNewVideoModal(): void {
+    if (!this.selectedCourseForVideos) {
+      this.showSuccess('Selecciona un curso primero');
+      return;
+    }
+
+    this.editingVideo = null;
+    this.videoForm = {
+      courseId: this.selectedCourseForVideos.id,
+      title: '',
+      description: '',
+      videoUrl: '',
+      thumbnailUrl: '',
+      duration: '',
+      type: 'PRACTICE',
+      orderIndex: this.getNextVideoOrder()
+    };
+    this.videoFormError = '';
+    this.showVideoModal = true;
+    this.cdr.detectChanges();
+  }
+
+  openEditVideoModal(video: VideoResponse): void {
+    if (!this.selectedCourseForVideos) return;
+
+    this.editingVideo = video;
+    this.videoForm = {
+      courseId: this.selectedCourseForVideos.id,
+      title: video.title,
+      description: video.description || '',
+      videoUrl: video.videoUrl,
+      thumbnailUrl: video.thumbnailUrl || '',
+      duration: video.duration || '',
+      type: video.type,
+      orderIndex: video.orderIndex
+    };
+    this.videoFormError = '';
+    this.showVideoModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeVideoModal(): void {
+    this.showVideoModal = false;
+    this.editingVideo = null;
+    this.cdr.detectChanges();
+  }
+
+  saveVideo(): void {
+    if (!this.videoForm.title) {
+      this.videoFormError = 'El título es requerido';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (!this.videoForm.videoUrl) {
+      this.videoFormError = 'La URL del video es requerida';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Extraer ID de YouTube si es una URL completa
+    this.videoForm.videoUrl = this.extractYoutubeId(this.videoForm.videoUrl);
+
+    this.startLoading(this.editingVideo ? 'Actualizando video...' : 'Creando video...');
+    this.videoFormError = '';
+
+    const request = this.editingVideo
+      ? this.adminService.updateVideo(this.editingVideo.id, this.videoForm)
+      : this.adminService.createVideo(this.videoForm);
+
+    request.pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.showSuccess(this.editingVideo ? 'Video actualizado' : 'Video creado');
+        this.closeVideoModal();
+        this.loadData();
+      },
+      error: (error) => {
+        this.videoFormError = error.error?.message || 'Error al guardar video';
+        this.stopLoading();
+      }
+    });
+  }
+
+  deleteVideo(video: VideoResponse): void {
+    if (confirm(`¿Eliminar el video "${video.title}"? Esta acción no se puede deshacer.`)) {
+      this.startLoading('Eliminando video...');
+
+      this.adminService.deleteVideo(video.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.showSuccess('Video eliminado');
+            this.loadData();
+          },
+          error: () => {
+            this.stopLoading();
+          }
+        });
+    }
+  }
+
+  /**
+   * Extrae el ID de YouTube de una URL
+   */
+  extractYoutubeId(url: string): string {
+    if (!url) return '';
+
+    // Si ya es solo un ID (11 caracteres sin espacios ni /)
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url.trim())) {
+      return url.trim();
+    }
+
+    // Patrones de URL de YouTube
+    const patterns = [
+      /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
+
+    // Si no coincide con ningún patrón, devolver como está
+    return url.trim();
+  }
+
+  /**
+   * Genera thumbnail de YouTube
+   */
+  getYoutubeThumbnail(videoUrl: string): string {
+    const videoId = this.extractYoutubeId(videoUrl);
+    return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+  }
+
+  /**
+   * Obtiene el siguiente orden para un nuevo video
+   */
+  getNextVideoOrder(): number {
+    if (!this.selectedCourseForVideos) return 0;
+    const allVideos = [
+      ...this.selectedCourseForVideos.theoryVideos,
+      ...this.selectedCourseForVideos.practiceVideos
+    ];
+    if (allVideos.length === 0) return 0;
+    return Math.max(...allVideos.map(v => v.orderIndex || 0)) + 1;
+  }
+
+  /**
+   * Obtiene los videos del curso seleccionado
+   */
+  getVideosForSelectedCourse(): VideoResponse[] {
+    if (!this.selectedCourseForVideos) return [];
+    return [
+      ...this.selectedCourseForVideos.theoryVideos,
+      ...this.selectedCourseForVideos.practiceVideos
+    ].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
   }
 
   // ==================== UTILIDADES ====================

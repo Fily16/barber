@@ -62,108 +62,228 @@
       {{ successMessage }}
     </div>
 
-    <!-- Header -->
-    <header class="admin-header">
-      <h1>Gestión de Estudiantes</h1>
-      <p>{{ students.length }} estudiantes registrados</p>
-    </header>
-
-    <!-- Acciones -->
-    <div class="admin-actions">
-      <button class="btn-primary" (click)="openNewStudentModal()">
+    <!-- Tabs de navegación -->
+    <div class="admin-tabs">
+      <button class="tab-btn" [class.active]="currentView === 'students'" (click)="switchView('students')">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
         </svg>
-        NUEVO ESTUDIANTE
+        ESTUDIANTES
+      </button>
+      <button class="tab-btn" [class.active]="currentView === 'videos'" (click)="switchView('videos')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="23 7 16 12 23 17 23 7"></polygon>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+        </svg>
+        VIDEOS
       </button>
     </div>
 
-    <!-- Loading -->
-    <div class="loading-container" *ngIf="isLoading">
-      <div class="spinner"></div>
-      <p class="loading-message">{{ loadingMessage }}</p>
-      <p class="loading-submessage" *ngIf="serverWakingUp">
-        🚀 No te preocupes, la página no se ha colgado. ¡Ya casi está!
-      </p>
+    <!-- ============== VISTA: ESTUDIANTES ============== -->
+    <div class="view-content" *ngIf="currentView === 'students'">
+      <!-- Header -->
+      <header class="admin-header">
+        <h1>Gestión de Estudiantes</h1>
+        <p>{{ students.length }} estudiantes registrados</p>
+      </header>
+
+      <!-- Acciones -->
+      <div class="admin-actions">
+        <button class="btn-primary" (click)="openNewStudentModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          NUEVO ESTUDIANTE
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-container" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p class="loading-message">{{ loadingMessage }}</p>
+        <p class="loading-submessage" *ngIf="serverWakingUp">
+          🚀 No te preocupes, la página no se ha colgado. ¡Ya casi está!
+        </p>
+      </div>
+
+      <!-- Tabla de estudiantes -->
+      <div class="table-container" *ngIf="!isLoading">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Cursos</th>
+              <th>Estado</th>
+              <th>Último acceso</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let student of students" [class.inactive]="!student.active">
+              <td class="username">{{ student.username }}</td>
+              <td>{{ student.fullName }}</td>
+              <td class="courses-cell">
+                <div class="course-badges">
+                  <span class="course-badge" *ngFor="let uc of student.courses"
+                        [class.expired]="!uc.accessValid"
+                        [class.active]="uc.accessValid">
+                    {{ uc.courseTitle }}
+                    <span class="plan-type">{{ uc.planType === 'UNLIMITED' ? '∞' : uc.expiresAt ? (formatDate(uc.expiresAt)) : '' }}</span>
+                    <button class="revoke-btn" *ngIf="uc.active" (click)="revokeAccess(uc)" title="Revocar acceso">×</button>
+                  </span>
+                  <span class="no-courses" *ngIf="student.courses.length === 0">Sin cursos</span>
+                </div>
+              </td>
+              <td>
+                <span class="status-badge" [class.active]="student.active" [class.inactive]="!student.active">
+                  {{ student.active ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="date-cell">{{ formatDate(student.lastLogin) }}</td>
+              <td class="actions-cell">
+                <button class="action-btn" (click)="openAssignModal(student)" title="Asignar curso">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"></path>
+                  </svg>
+                </button>
+                <button class="action-btn" (click)="openEditStudentModal(student)" title="Editar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button class="action-btn" (click)="openPasswordModal(student)" title="Cambiar contraseña">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                </button>
+                <button class="action-btn" (click)="toggleStatus(student)" [title]="student.active ? 'Desactivar' : 'Activar'">
+                  <svg *ngIf="student.active" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                  <svg *ngIf="!student.active" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+                <button class="action-btn delete" (click)="deleteStudent(student)" title="Eliminar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="students.length === 0">
+              <td colspan="6" class="empty-state">No hay estudiantes registrados</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- Tabla de estudiantes -->
-    <div class="table-container" *ngIf="!isLoading">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Usuario</th>
-            <th>Nombre</th>
-            <th>Cursos</th>
-            <th>Estado</th>
-            <th>Último acceso</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let student of students" [class.inactive]="!student.active">
-            <td class="username">{{ student.username }}</td>
-            <td>{{ student.fullName }}</td>
-            <td class="courses-cell">
-              <div class="course-badges">
-                <span class="course-badge" *ngFor="let uc of student.courses"
-                      [class.expired]="!uc.accessValid"
-                      [class.active]="uc.accessValid">
-                  {{ uc.courseTitle }}
-                  <span class="plan-type">{{ uc.planType === 'UNLIMITED' ? '∞' : uc.expiresAt ? (formatDate(uc.expiresAt)) : '' }}</span>
-                  <button class="revoke-btn" *ngIf="uc.active" (click)="revokeAccess(uc)" title="Revocar acceso">×</button>
-                </span>
-                <span class="no-courses" *ngIf="student.courses.length === 0">Sin cursos</span>
-              </div>
-            </td>
-            <td>
-              <span class="status-badge" [class.active]="student.active" [class.inactive]="!student.active">
-                {{ student.active ? 'Activo' : 'Inactivo' }}
+    <!-- ============== VISTA: VIDEOS ============== -->
+    <div class="view-content" *ngIf="currentView === 'videos'">
+      <!-- Header -->
+      <header class="admin-header">
+        <h1>Gestión de Videos</h1>
+        <p>Administra los videos de cada curso</p>
+      </header>
+
+      <!-- Selector de curso -->
+      <div class="course-selector">
+        <label>Seleccionar curso:</label>
+        <div class="course-tabs">
+          <button
+            *ngFor="let course of courses"
+            class="course-tab"
+            [class.active]="selectedCourseForVideos?.id === course.id"
+            (click)="selectCourseForVideos(course)">
+            {{ course.title }}
+            <span class="video-count">{{ course.totalVideos }} videos</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Acciones de videos -->
+      <div class="admin-actions" *ngIf="selectedCourseForVideos">
+        <button class="btn-primary" (click)="openNewVideoModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          AGREGAR VIDEO
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-container" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p class="loading-message">{{ loadingMessage }}</p>
+      </div>
+
+      <!-- Lista de videos -->
+      <div class="videos-list" *ngIf="!isLoading && selectedCourseForVideos">
+
+        <!-- Sin videos -->
+        <div class="empty-videos" *ngIf="getVideosForSelectedCourse().length === 0">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+          </svg>
+          <p>No hay videos en este curso</p>
+          <span>Haz clic en "Agregar Video" para comenzar</span>
+        </div>
+
+        <!-- Videos grid -->
+        <div class="videos-grid" *ngIf="getVideosForSelectedCourse().length > 0">
+          <div class="video-card" *ngFor="let video of getVideosForSelectedCourse()">
+            <div class="video-thumbnail">
+              <img [src]="getYoutubeThumbnail(video.videoUrl)" [alt]="video.title" />
+              <span class="video-type" [class.theory]="video.type === 'THEORY'" [class.practice]="video.type === 'PRACTICE'">
+                {{ video.type === 'THEORY' ? 'Teoría' : 'Práctica' }}
               </span>
-            </td>
-            <td class="date-cell">{{ formatDate(student.lastLogin) }}</td>
-            <td class="actions-cell">
-              <button class="action-btn" (click)="openAssignModal(student)" title="Asignar curso">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 5v14M5 12h14"></path>
-                </svg>
-              </button>
-              <button class="action-btn" (click)="openEditStudentModal(student)" title="Editar">
+              <span class="video-duration" *ngIf="video.duration">{{ video.duration }}</span>
+            </div>
+            <div class="video-info">
+              <h4>{{ video.title }}</h4>
+              <p class="video-description" *ngIf="video.description">{{ video.description }}</p>
+              <span class="video-order">Orden: {{ video.orderIndex }}</span>
+            </div>
+            <div class="video-actions">
+              <button class="action-btn" (click)="openEditVideoModal(video)" title="Editar">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
               </button>
-              <button class="action-btn" (click)="openPasswordModal(student)" title="Cambiar contraseña">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-              </button>
-              <button class="action-btn" (click)="toggleStatus(student)" [title]="student.active ? 'Desactivar' : 'Activar'">
-                <svg *ngIf="student.active" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-                <svg *ngIf="!student.active" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-              </button>
-              <button class="action-btn delete" (click)="deleteStudent(student)" title="Eliminar">
+              <button class="action-btn delete" (click)="deleteVideo(video)" title="Eliminar">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="3 6 5 6 21 6"></polyline>
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                 </svg>
               </button>
-            </td>
-          </tr>
-          <tr *ngIf="students.length === 0">
-            <td colspan="6" class="empty-state">No hay estudiantes registrados</td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sin cursos -->
+      <div class="empty-videos" *ngIf="!isLoading && courses.length === 0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        <p>No hay cursos creados</p>
+        <span>Primero crea un curso en la base de datos</span>
+      </div>
     </div>
   </div>
 </div>
@@ -262,6 +382,70 @@
         <button type="button" class="btn-secondary" (click)="closePasswordModal()">Cancelar</button>
         <button type="submit" class="btn-primary" [disabled]="isLoading">
           {{ isLoading ? 'Guardando...' : 'Cambiar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============== MODAL: CREAR/EDITAR VIDEO ============== -->
+<div class="modal-overlay" *ngIf="showVideoModal" (click)="closeVideoModal()">
+  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ editingVideo ? 'Editar Video' : 'Agregar Video' }}</h3>
+      <button class="close-btn" (click)="closeVideoModal()">×</button>
+    </div>
+    <form (ngSubmit)="saveVideo()">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Título *</label>
+          <input type="text" [(ngModel)]="videoForm.title" name="title" placeholder="Ej: Corte Clásico - Técnica Básica" />
+        </div>
+        <div class="form-group form-group-sm">
+          <label>Tipo *</label>
+          <select [(ngModel)]="videoForm.type" name="type">
+            <option value="PRACTICE">Práctica</option>
+            <option value="THEORY">Teoría</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>URL de YouTube *</label>
+        <input type="text" [(ngModel)]="videoForm.videoUrl" name="videoUrl"
+               placeholder="https://youtu.be/xxxx o solo el ID del video" />
+        <span class="form-hint">Pega el enlace de YouTube o solo el ID del video (ej: qXZeCyWVBP0)</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Duración</label>
+          <input type="text" [(ngModel)]="videoForm.duration" name="duration" placeholder="Ej: 15:30" />
+        </div>
+        <div class="form-group">
+          <label>Orden</label>
+          <input type="number" [(ngModel)]="videoForm.orderIndex" name="orderIndex" min="0" />
+          <span class="form-hint">Menor número = aparece primero</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Descripción (opcional)</label>
+        <textarea [(ngModel)]="videoForm.description" name="description" rows="2"
+                  placeholder="Breve descripción del contenido del video"></textarea>
+      </div>
+
+      <!-- Preview del thumbnail -->
+      <div class="video-preview" *ngIf="videoForm.videoUrl">
+        <label>Vista previa:</label>
+        <img [src]="getYoutubeThumbnail(videoForm.videoUrl)" alt="Preview" />
+      </div>
+
+      <div class="form-error" *ngIf="videoFormError">{{ videoFormError }}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="closeVideoModal()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Guardando...' : 'Guardar Video' }}
         </button>
       </div>
     </form>

@@ -7,7 +7,7 @@ import { SafeUrlPipe } from '../../pipes/safe-url.pipe';
 import { AuthService, CourseService } from '../../core/services';
 import { CourseResponse, VideoResponse } from '../../core/models';
 
-// Interfaz local para mantener compatibilidad con el template
+// Interfaz local para el template
 interface Video {
   id: string;
   titulo: string;
@@ -52,9 +52,6 @@ export class CursoComponent implements OnInit, OnDestroy {
 
   // Estado de curso no encontrado
   courseNotFound: boolean = false;
-
-  // Sección abierta
-  openSection: string = '';
 
   // Modal de video
   showVideoModal: boolean = false;
@@ -106,7 +103,6 @@ export class CursoComponent implements OnInit, OnDestroy {
     this.loginError = '';
     this.username = '';
     this.password = '';
-    this.openSection = '';
     this.showVideoModal = false;
     this.showSessionModal = false;
     this.showSessionClosedModal = false;
@@ -119,12 +115,9 @@ export class CursoComponent implements OnInit, OnDestroy {
    * Maneja cuando la sesión es invalidada por otro dispositivo
    */
   private handleSessionInvalidated(): void {
-    // Cerrar modal de video si está abierto
     if (this.showVideoModal) {
       this.closeModal();
     }
-
-    // Mostrar modal de sesión cerrada
     this.showSessionClosedModal = true;
     this.isAuthenticated = false;
     this.cdr.detectChanges();
@@ -213,16 +206,10 @@ export class CursoComponent implements OnInit, OnDestroy {
       });
   }
 
-  /**
-   * Usuario confirma cerrar sesión anterior y continuar
-   */
   confirmForceLogin(): void {
     this.login(true);
   }
 
-  /**
-   * Usuario cancela el login forzado
-   */
   cancelForceLogin(): void {
     this.showSessionModal = false;
     this.isLoading = false;
@@ -232,14 +219,14 @@ export class CursoComponent implements OnInit, OnDestroy {
   private loadCourse(): void {
     console.log('=== LOADING COURSE ===');
     console.log('Course ID:', this.cursoId);
-    console.log('Token exists:', !!this.authService.getToken());
 
     this.courseService.getCourse(this.cursoId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('Course loaded successfully:', response);
+          console.log('Course loaded:', response);
           if (response.success && response.data) {
+            // Mapear respuesta del backend a formato local
             this.curso = this.mapCourseResponse(response.data);
             this.isAuthenticated = true;
             this.showWelcome = false;
@@ -249,23 +236,18 @@ export class CursoComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.log('=== COURSE LOAD ERROR ===');
-          console.log('Full error:', error);
-          console.log('sessionInvalid:', error.sessionInvalid);
-          console.log('status:', error.status);
+          console.log('=== COURSE LOAD ERROR ===', error);
 
           this.isLoading = false;
           this.showWelcome = false;
 
           if (error.sessionInvalid) {
-            console.log('Handling sessionInvalid error');
             this.handleSessionInvalidated();
           } else if (error.status === 403) {
             this.loginError = error.error?.message || 'No tienes acceso a este curso';
             this.isAuthenticated = false;
             this.authService.clearAuth();
           } else if (error.status === 401) {
-            console.log('Handling 401 error');
             this.loginError = 'Sesión expirada. Inicia sesión nuevamente.';
             this.isAuthenticated = false;
             this.authService.clearAuth();
@@ -277,47 +259,82 @@ export class CursoComponent implements OnInit, OnDestroy {
             this.loginError = 'Error al cargar el curso. Intenta de nuevo.';
           }
 
-          console.log('Final state - isAuthenticated:', this.isAuthenticated);
-          console.log('Final state - loginError:', this.loginError);
           this.cdr.detectChanges();
         }
       });
   }
 
+  /**
+   * Mapea la respuesta del backend al formato local
+   */
   private mapCourseResponse(course: CourseResponse): CursoData {
-    const teoriaVideo = course.theoryVideos.length > 0
+    // Videos de teoría (tomar el primero si hay)
+    const teoriaVideo = course.theoryVideos && course.theoryVideos.length > 0
       ? this.mapVideoResponse(course.theoryVideos[0])
       : null;
 
-    const practicas = course.practiceVideos.map(v => this.mapVideoResponse(v));
+    // Videos de práctica
+    const practicas = course.practiceVideos
+      ? course.practiceVideos.map(v => this.mapVideoResponse(v))
+      : [];
 
     return {
       id: course.slug,
       titulo: course.title,
-      descripcion: course.description,
+      descripcion: course.description || '',
       teoria: teoriaVideo,
       practicas: practicas
     };
   }
 
+  /**
+   * Mapea un VideoResponse del backend al formato Video local
+   */
   private mapVideoResponse(video: VideoResponse): Video {
     return {
       id: video.id.toString(),
       titulo: video.title,
-      duracion: video.duration || '00:00',
-      thumbnail: video.thumbnailUrl || 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=300',
+      duracion: video.duration || '',
+      thumbnail: video.thumbnailUrl || this.getYoutubeThumbnail(video.videoUrl),
       videoUrl: video.videoUrl
     };
   }
 
-  toggleSection(section: string): void {
-    this.openSection = this.openSection === section ? '' : section;
+  /**
+   * Genera thumbnail de YouTube a partir de la URL o ID
+   */
+  getYoutubeThumbnail(videoUrl: string): string {
+    const videoId = this.extractYoutubeId(videoUrl);
+    return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+  }
+
+  /**
+   * Extrae el ID de YouTube de una URL
+   */
+  extractYoutubeId(url: string): string {
+    if (!url) return '';
+
+    // Si ya es solo un ID (11 caracteres)
+    if (/^[a-zA-Z0-9_-]{11}$/.test(url.trim())) {
+      return url.trim();
+    }
+
+    const patterns = [
+      /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+
+    return url.trim();
   }
 
   playVideo(video: Video): void {
-    // Verificar sesión antes de reproducir
     this.authService.checkSession();
-
     this.selectedVideo = video;
     this.showVideoModal = true;
     document.body.style.overflow = 'hidden';
@@ -333,32 +350,21 @@ export class CursoComponent implements OnInit, OnDestroy {
    * Genera URL de YouTube con parámetros para ocultar branding
    */
   getSecureVideoUrl(videoUrl: string): string {
-    // Si ya es una URL de embed, extraer el ID
-    let videoId = '';
+    const videoId = this.extractYoutubeId(videoUrl);
 
-    if (videoUrl.includes('youtube.com/embed/')) {
-      videoId = videoUrl.split('youtube.com/embed/')[1]?.split('?')[0] || '';
-    } else if (videoUrl.includes('youtu.be/')) {
-      videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0] || '';
-    } else if (videoUrl.includes('youtube.com/watch')) {
-      const urlParams = new URLSearchParams(videoUrl.split('?')[1]);
-      videoId = urlParams.get('v') || '';
-    } else {
-      // Asumir que es solo el ID
-      videoId = videoUrl;
-    }
-
-    // Parámetros para ocultar YouTube branding
+    // Parámetros para ocultar YouTube branding al máximo
     const params = new URLSearchParams({
-      'modestbranding': '1',      // Reduce branding
-      'rel': '0',                  // No mostrar videos relacionados
-      'showinfo': '0',             // Ocultar título (deprecado pero ayuda)
-      'iv_load_policy': '3',       // Ocultar anotaciones
-      'fs': '1',                   // Permitir pantalla completa
-      'playsinline': '1',          // Reproducir inline en móvil
-      'enablejsapi': '1',          // Habilitar API
+      'modestbranding': '1',
+      'rel': '0',
+      'showinfo': '0',
+      'iv_load_policy': '3',
+      'fs': '1',
+      'playsinline': '1',
+      'enablejsapi': '1',
       'origin': window.location.origin,
-      'widget_referrer': window.location.origin
+      'widget_referrer': window.location.origin,
+      'cc_load_policy': '0',
+      'disablekb': '0'
     });
 
     return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
