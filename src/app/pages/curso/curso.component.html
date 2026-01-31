@@ -88,80 +88,78 @@
         <button class="logout-btn" (click)="logout()">SALIR</button>
       </div>
       <h1>{{ curso.titulo }}</h1>
+      <p class="course-description" *ngIf="curso.descripcion">{{ curso.descripcion }}</p>
     </header>
 
-    <!-- Secciones Colapsables -->
-    <section class="course-sections">
+    <!-- Videos Grid - Todos visibles -->
+    <section class="videos-section">
+      <div class="section-title">
+        <span class="section-number">CONTENIDO</span>
+        <h3>VIDEOS DEL CURSO</h3>
+        <span class="video-total">{{ getTotalVideos() }} videos disponibles</span>
+      </div>
 
-      <!-- TEORÍA -->
-      <div class="section-block" *ngIf="curso.teoria">
-        <div class="section-header" (click)="toggleSection('teoria')">
-          <div class="section-info">
-            <span class="section-number">01</span>
-            <h3>TEORÍA</h3>
-          </div>
-          <div class="section-meta">
-            <span class="video-count">1 video</span>
-            <span class="toggle-icon" [class.open]="openSection === 'teoria'">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          </div>
+      <!-- Videos de Teoría -->
+      <div class="videos-grid" *ngIf="curso.teoria">
+        <div class="video-category">
+          <span class="category-label">TEORÍA</span>
         </div>
-        <div class="section-content" [class.open]="openSection === 'teoria'">
-          <div class="video-item" (click)="playVideo(curso.teoria!)">
-            <div class="video-thumb">
-              <img [src]="curso.teoria!.thumbnail" [alt]="curso.teoria!.titulo" />
-              <div class="play-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <div class="video-card" (click)="playVideo(curso.teoria!)">
+          <div class="video-thumbnail">
+            <img [src]="curso.teoria!.thumbnail" [alt]="curso.teoria!.titulo" />
+            <div class="play-overlay">
+              <div class="play-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
               </div>
             </div>
-            <div class="video-details">
-              <h4>{{ curso.teoria!.titulo }}</h4>
-              <span class="duration">{{ curso.teoria!.duracion }}</span>
-            </div>
+            <span class="video-duration">{{ curso.teoria!.duracion }}</span>
+          </div>
+          <div class="video-info">
+            <h4>{{ curso.teoria!.titulo }}</h4>
           </div>
         </div>
       </div>
 
-      <!-- PRÁCTICA -->
-      <div class="section-block">
-        <div class="section-header" (click)="toggleSection('practica')">
-          <div class="section-info">
-            <span class="section-number">02</span>
-            <h3>PRÁCTICA</h3>
-          </div>
-          <div class="section-meta">
-            <span class="video-count">{{ curso.practicas.length }} videos</span>
-            <span class="toggle-icon" [class.open]="openSection === 'practica'">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </span>
-          </div>
+      <!-- Videos de Práctica -->
+      <div class="videos-grid" *ngIf="curso.practicas.length > 0">
+        <div class="video-category">
+          <span class="category-label">PRÁCTICA</span>
         </div>
-        <div class="section-content" [class.open]="openSection === 'practica'">
-          <div class="video-item" *ngFor="let video of curso.practicas; let i = index" (click)="playVideo(video)">
-            <div class="video-thumb">
-              <img [src]="video.thumbnail" [alt]="video.titulo" />
-              <span class="video-num">{{ i + 1 }}</span>
-              <div class="play-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <div class="video-card" *ngFor="let video of curso.practicas; let i = index" (click)="playVideo(video)">
+          <div class="video-thumbnail">
+            <img [src]="video.thumbnail" [alt]="video.titulo" />
+            <div class="play-overlay">
+              <div class="play-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
               </div>
             </div>
-            <div class="video-details">
-              <h4>{{ video.titulo }}</h4>
-              <span class="duration">{{ video.duracion }}</span>
-            </div>
+            <span class="video-number">{{ i + 1 }}</span>
+            <span class="video-duration">{{ video.duracion }}</span>
+          </div>
+          <div class="video-info">
+            <h4>{{ video.titulo }}</h4>
           </div>
         </div>
       </div>
 
+      <!-- Sin videos -->
+      <div class="no-videos" *ngIf="!curso.teoria && curso.practicas.length === 0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+          <line x1="7" y1="2" x2="7" y2="22"></line>
+          <line x1="17" y1="2" x2="17" y2="22"></line>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <line x1="2" y1="7" x2="7" y2="7"></line>
+          <line x1="2" y1="17" x2="7" y2="17"></line>
+          <line x1="17" y1="17" x2="22" y2="17"></line>
+          <line x1="17" y1="7" x2="22" y2="7"></line>
+        </svg>
+        <p>Los videos del curso se están preparando</p>
+      </div>
     </section>
 
     <!-- Footer -->
@@ -171,7 +169,7 @@
   </div>
 </div>
 
-<!-- Video Modal -->
+<!-- ============== VIDEO MODAL - REPRODUCTOR PERSONALIZADO ============== -->
 <div class="video-modal" *ngIf="showVideoModal" (click)="closeModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <button class="close-btn" (click)="closeModal()">
@@ -180,15 +178,24 @@
         <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
     </button>
+
+    <!-- Reproductor con overlay para ocultar YouTube -->
     <div class="video-wrapper">
-      <iframe
-        *ngIf="selectedVideo"
-        [src]="selectedVideo.videoUrl | safeUrl"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen>
-      </iframe>
+      <div class="video-container">
+        <iframe
+          *ngIf="selectedVideo"
+          [src]="getSecureVideoUrl(selectedVideo.videoUrl) | safeUrl"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          allowfullscreen>
+        </iframe>
+        <!-- Overlay superior para ocultar logo de YouTube -->
+        <div class="youtube-hide-top"></div>
+        <!-- Overlay para ocultar "Ver en YouTube" -->
+        <div class="youtube-hide-bottom"></div>
+      </div>
     </div>
+
     <div class="modal-info" *ngIf="selectedVideo">
       <h3>{{ selectedVideo.titulo }}</h3>
       <span>{{ selectedVideo.duracion }}</span>

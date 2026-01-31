@@ -329,6 +329,50 @@ export class CursoComponent implements OnInit, OnDestroy {
     document.body.style.overflow = 'auto';
   }
 
+  /**
+   * Genera URL de YouTube con parámetros para ocultar branding
+   */
+  getSecureVideoUrl(videoUrl: string): string {
+    // Si ya es una URL de embed, extraer el ID
+    let videoId = '';
+
+    if (videoUrl.includes('youtube.com/embed/')) {
+      videoId = videoUrl.split('youtube.com/embed/')[1]?.split('?')[0] || '';
+    } else if (videoUrl.includes('youtu.be/')) {
+      videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0] || '';
+    } else if (videoUrl.includes('youtube.com/watch')) {
+      const urlParams = new URLSearchParams(videoUrl.split('?')[1]);
+      videoId = urlParams.get('v') || '';
+    } else {
+      // Asumir que es solo el ID
+      videoId = videoUrl;
+    }
+
+    // Parámetros para ocultar YouTube branding
+    const params = new URLSearchParams({
+      'modestbranding': '1',      // Reduce branding
+      'rel': '0',                  // No mostrar videos relacionados
+      'showinfo': '0',             // Ocultar título (deprecado pero ayuda)
+      'iv_load_policy': '3',       // Ocultar anotaciones
+      'fs': '1',                   // Permitir pantalla completa
+      'playsinline': '1',          // Reproducir inline en móvil
+      'enablejsapi': '1',          // Habilitar API
+      'origin': window.location.origin,
+      'widget_referrer': window.location.origin
+    });
+
+    return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
+  }
+
+  /**
+   * Obtiene el total de videos del curso
+   */
+  getTotalVideos(): number {
+    if (!this.curso) return 0;
+    const teoriaCount = this.curso.teoria ? 1 : 0;
+    return teoriaCount + this.curso.practicas.length;
+  }
+
   logout(): void {
     this.authService.logout()
       .pipe(takeUntil(this.destroy$))
