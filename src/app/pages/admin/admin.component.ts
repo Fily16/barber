@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -75,8 +75,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private adminService: AdminService,
     private router: Router,
-    private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -104,11 +103,9 @@ export class AdminComponent implements OnInit, OnDestroy {
 
     // Si tarda más de 5 segundos, mostrar mensaje amigable
     this.loadingTimer = setTimeout(() => {
-      this.ngZone.run(() => {
-        this.serverWakingUp = true;
-        this.loadingMessage = '¡El servidor está despertando! ☕ Esto puede tomar unos segundos...';
-        this.cdr.detectChanges();
-      });
+      this.serverWakingUp = true;
+      this.loadingMessage = '¡El servidor está despertando! ☕ Esto puede tomar unos segundos...';
+      this.cdr.detectChanges();
     }, 5000);
 
     this.cdr.detectChanges();
@@ -150,41 +147,50 @@ export class AdminComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          this.ngZone.run(() => {
-            if (response.success && response.data) {
-              // Verificar si hay sesión activa en otro dispositivo
-              if (response.data.hasActiveSession) {
-                this.stopLoading();
-                this.showSessionModal = true;
-                return;
-              }
+          console.log('Login response:', response);
 
-              // Verificar rol de admin
-              if (response.data.role === 'ADMIN') {
-                this.isAuthenticated = true;
-                this.loadData();
-              } else {
-                this.loginError = 'No tienes permisos de administrador';
-                this.authService.clearAuth();
-                this.stopLoading();
-              }
+          if (response.success && response.data) {
+            // Verificar si hay sesión activa en otro dispositivo
+            if (response.data.hasActiveSession) {
+              console.log('Sesión activa detectada, mostrando modal');
+              this.isLoading = false;
+              this.serverWakingUp = false;
+              this.loadingMessage = 'Cargando...';
+              this.clearLoadingTimer();
+              this.showSessionModal = true;
+              this.cdr.detectChanges();
+              return;
+            }
+
+            // Verificar rol de admin
+            if (response.data.role === 'ADMIN') {
+              console.log('Login exitoso como ADMIN');
+              this.isAuthenticated = true;
+              this.cdr.detectChanges();
+              this.loadData();
             } else {
-              this.loginError = response.message || 'Error al iniciar sesión';
+              console.log('No es admin');
+              this.loginError = 'No tienes permisos de administrador';
+              this.authService.clearAuth();
               this.stopLoading();
             }
-          });
+          } else {
+            console.log('Respuesta sin éxito:', response.message);
+            this.loginError = response.message || 'Error al iniciar sesión';
+            this.stopLoading();
+          }
         },
         error: (error) => {
-          this.ngZone.run(() => {
-            this.stopLoading();
-            if (error.sessionInvalid) {
-              this.loginError = 'Sesión cerrada. Se inició sesión en otro dispositivo.';
-            } else if (error.status === 401) {
-              this.loginError = 'Credenciales incorrectas';
-            } else {
-              this.loginError = 'Error de conexión';
-            }
-          });
+          console.log('Login error:', error);
+          this.stopLoading();
+          if (error.sessionInvalid) {
+            this.loginError = 'Sesión cerrada. Se inició sesión en otro dispositivo.';
+          } else if (error.status === 401) {
+            this.loginError = 'Credenciales incorrectas';
+          } else {
+            this.loginError = 'Error de conexión. Intenta de nuevo.';
+          }
+          this.cdr.detectChanges();
         }
       });
   }
@@ -201,19 +207,15 @@ export class AdminComponent implements OnInit, OnDestroy {
   logout(): void {
     this.authService.logout().pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
-        this.ngZone.run(() => {
-          this.isAuthenticated = false;
-          this.username = '';
-          this.password = '';
-          this.cdr.detectChanges();
-        });
+        this.isAuthenticated = false;
+        this.username = '';
+        this.password = '';
+        this.cdr.detectChanges();
       },
       error: () => {
-        this.ngZone.run(() => {
-          this.authService.clearAuth();
-          this.isAuthenticated = false;
-          this.cdr.detectChanges();
-        });
+        this.authService.clearAuth();
+        this.isAuthenticated = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -228,17 +230,14 @@ export class AdminComponent implements OnInit, OnDestroy {
       courses: this.adminService.getAllCourses()
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (result) => {
-        this.ngZone.run(() => {
-          this.students = result.students.data || [];
-          this.courses = result.courses.data || [];
-          this.stopLoading();
-        });
+        console.log('Datos cargados:', result);
+        this.students = result.students.data || [];
+        this.courses = result.courses.data || [];
+        this.stopLoading();
       },
       error: (error) => {
-        this.ngZone.run(() => {
-          console.error('Error loading data:', error);
-          this.stopLoading();
-        });
+        console.error('Error loading data:', error);
+        this.stopLoading();
       }
     });
   }
@@ -301,17 +300,13 @@ export class AdminComponent implements OnInit, OnDestroy {
 
     request.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
-        this.ngZone.run(() => {
-          this.showSuccess(this.editingStudent ? 'Estudiante actualizado' : 'Estudiante creado');
-          this.closeStudentModal();
-          this.loadData();
-        });
+        this.showSuccess(this.editingStudent ? 'Estudiante actualizado' : 'Estudiante creado');
+        this.closeStudentModal();
+        this.loadData();
       },
       error: (error) => {
-        this.ngZone.run(() => {
-          this.studentFormError = error.error?.message || 'Error al guardar';
-          this.stopLoading();
-        });
+        this.studentFormError = error.error?.message || 'Error al guardar';
+        this.stopLoading();
       }
     });
   }
@@ -323,15 +318,11 @@ export class AdminComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.ngZone.run(() => {
-            this.showSuccess(`Estudiante ${student.active ? 'desactivado' : 'activado'}`);
-            this.loadData();
-          });
+          this.showSuccess(`Estudiante ${student.active ? 'desactivado' : 'activado'}`);
+          this.loadData();
         },
         error: () => {
-          this.ngZone.run(() => {
-            this.stopLoading();
-          });
+          this.stopLoading();
         }
       });
   }
@@ -344,15 +335,11 @@ export class AdminComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
-            this.ngZone.run(() => {
-              this.showSuccess('Estudiante eliminado');
-              this.loadData();
-            });
+            this.showSuccess('Estudiante eliminado');
+            this.loadData();
           },
           error: () => {
-            this.ngZone.run(() => {
-              this.stopLoading();
-            });
+            this.stopLoading();
           }
         });
     }
@@ -389,17 +376,13 @@ export class AdminComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.ngZone.run(() => {
-            this.showSuccess('Contraseña actualizada');
-            this.closePasswordModal();
-            this.stopLoading();
-          });
+          this.showSuccess('Contraseña actualizada');
+          this.closePasswordModal();
+          this.stopLoading();
         },
         error: (error) => {
-          this.ngZone.run(() => {
-            this.passwordError = error.error?.message || 'Error al cambiar contraseña';
-            this.stopLoading();
-          });
+          this.passwordError = error.error?.message || 'Error al cambiar contraseña';
+          this.stopLoading();
         }
       });
   }
@@ -439,17 +422,13 @@ export class AdminComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.ngZone.run(() => {
-            this.showSuccess('Curso asignado exitosamente');
-            this.closeAssignModal();
-            this.loadData();
-          });
+          this.showSuccess('Curso asignado exitosamente');
+          this.closeAssignModal();
+          this.loadData();
         },
         error: (error) => {
-          this.ngZone.run(() => {
-            this.assignFormError = error.error?.message || 'Error al asignar curso';
-            this.stopLoading();
-          });
+          this.assignFormError = error.error?.message || 'Error al asignar curso';
+          this.stopLoading();
         }
       });
   }
@@ -462,15 +441,11 @@ export class AdminComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
-            this.ngZone.run(() => {
-              this.showSuccess('Acceso revocado');
-              this.loadData();
-            });
+            this.showSuccess('Acceso revocado');
+            this.loadData();
           },
           error: () => {
-            this.ngZone.run(() => {
-              this.stopLoading();
-            });
+            this.stopLoading();
           }
         });
     }
