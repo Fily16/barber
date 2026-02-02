@@ -5,7 +5,9 @@ import { RouterLink, Router } from '@angular/router';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { AdminService, UserResponse, CreateUserRequest, AssignCourseRequest, CreateVideoRequest } from '../../core/services/admin.service';
+import { BunnyService, UploadProgress } from '../../core/services/bunny.service';
 import { CourseResponse, UserCourseResponse, VideoResponse } from '../../core/models';
+import { BunnyUploadUrlResponse } from '../../core/models/bunny.model';
 
 @Component({
   selector: 'app-admin',
@@ -82,6 +84,16 @@ export class AdminComponent implements OnInit, OnDestroy {
   };
   videoFormError = '';
 
+  // ==================== BUNNY UPLOAD ====================
+  selectedVideoFile: File | null = null;
+  uploadProgress: UploadProgress = {
+    state: 'pending',
+    progress: 0,
+    message: ''
+  };
+  isUploading = false;
+  bunnyUploadData: BunnyUploadUrlResponse | null = null;
+
   // Mensajes
   successMessage = '';
 
@@ -90,6 +102,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private adminService: AdminService,
+    private bunnyService: BunnyService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -101,6 +114,14 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.isAuthenticated = true;
       this.loadData();
     }
+
+    // Suscribirse al progreso de upload
+    this.bunnyService.getUploadProgress()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(progress => {
+        this.uploadProgress = progress;
+        this.cdr.detectChanges();
+      });
   }
 
   ngOnDestroy() {
@@ -488,7 +509,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ==================== GESTIÓN DE VIDEOS ====================
+  // ==================== GESTIÓN DE VIDEOS CON BUNNY ====================
 
   openNewVideoModal(): void {
     if (!this.selectedCourseForVideos) {
@@ -508,6 +529,9 @@ export class AdminComponent implements OnInit, OnDestroy {
       orderIndex: this.getNextVideoOrder()
     };
     this.videoFormError = '';
+    this.selectedVideoFile = null;
+    this.bunnyUploadData = null;
+    this.bunnyService.resetProgress();
     this.showVideoModal = true;
     this.cdr.detectChanges();
   }
@@ -527,106 +551,318 @@ export class AdminComponent implements OnInit, OnDestroy {
       orderIndex: video.orderIndex
     };
     this.videoFormError = '';
+    this.selectedVideoFile = null;
+    this.bunnyUploadData = null;
+    this.bunnyService.resetProgress();
     this.showVideoModal = true;
     this.cdr.detectChanges();
   }
 
   closeVideoModal(): void {
+    if (this.isUploading) {
+      if (!confirm('Hay un video subiendo. ¿Seguro que quieres cancelar?')) {
+        return;
+      }
+    }
     this.showVideoModal = false;
     this.editingVideo = null;
+    this.selectedVideoFile = null;
+    this.bunnyUploadData = null;
+    this.isUploading = false;
+    this.bunnyService.resetProgress();
     this.cdr.detectChanges();
   }
 
-  saveVideo(): void {
+  /**
+   * Maneja la selección de archivo de video
+   */
+  onVideoFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+
+      // Validar tipo de archivo
+      const validTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
+      if (!validTypes.includes(file.type)) {
+        this.videoFormError = 'Formato no válido. Usa MP4, WebM, MOV o AVI.';
+        this.selectedVideoFile = null;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      // Validar tamaño (max 2GB)
+      const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
+      if (file.size > maxSize) {
+        this.videoFormError = 'El archivo es muy grande. Máximo 2GB.';
+        this.selectedVideoFile = null;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      this.selectedVideoFile = file;
+      this.videoFormError = '';
+
+      // Si no hay título, usar nombre del archivo
+      if (!this.videoForm.title) {
+        this.videoForm.title = file.name.replace(/\.[^/.]+$/, '');
+      }
+
+      this.cdr.detectChanges();
+    }
+  }
+
+  /**
+   * Formatea el tamaño del archivo
+   */
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  /**
+   * Guarda el video (crear nuevo o actualizar existente)
+   */
+  async saveVideo(): Promise<void> {
+    // Validaciones
     if (!this.videoForm.title) {
       this.videoFormError = 'El título es requerido';
       this.cdr.detectChanges();
       return;
     }
 
-    if (!this.videoForm.videoUrl) {
-      this.videoFormError = 'La URL del video es requerida';
+    // Para nuevo video, necesita archivo
+    if (!this.editingVideo && !this.selectedVideoFile) {
+      this.videoFormError = 'Selecciona un archivo de video';
       this.cdr.detectChanges();
       return;
     }
 
-    // Extraer ID de YouTube si es una URL completa
-    this.videoForm.videoUrl = this.extractYoutubeId(this.videoForm.videoUrl);
-
-    this.startLoading(this.editingVideo ? 'Actualizando video...' : 'Creando video...');
     this.videoFormError = '';
 
-    const request = this.editingVideo
-      ? this.adminService.updateVideo(this.editingVideo.id, this.videoForm)
-      : this.adminService.createVideo(this.videoForm);
+    if (this.editingVideo) {
+      // Actualizar video existente
+      this.updateExistingVideo();
+    } else {
+      // Crear nuevo video con upload a Bunny
+      await this.createNewVideoWithBunny();
+    }
+  }
 
-    request.pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.showSuccess(this.editingVideo ? 'Video actualizado' : 'Video creado');
-        this.closeVideoModal();
-        this.loadData();
-      },
-      error: (error) => {
-        this.videoFormError = error.error?.message || 'Error al guardar video';
-        this.stopLoading();
-      }
-    });
+  /**
+   * Crea un nuevo video subiendo a Bunny
+   */
+  private async createNewVideoWithBunny(): Promise<void> {
+    if (!this.selectedVideoFile) return;
+
+    this.isUploading = true;
+    this.videoFormError = '';
+
+    try {
+      // 1. Crear video en Bunny y obtener URL de upload
+      this.bunnyService.createVideo(this.videoForm.title)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (uploadData) => {
+            console.log('Bunny upload data:', uploadData);
+            this.bunnyUploadData = uploadData;
+
+            // 2. Subir archivo a Bunny CDN
+            this.bunnyService.uploadVideoToBunny(this.selectedVideoFile!, uploadData)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: (progress) => {
+                  this.uploadProgress = progress;
+                  this.cdr.detectChanges();
+
+                  if (progress.state === 'completed') {
+                    // 3. Guardar en backend con el videoId de Bunny
+                    this.saveVideoToBackend(uploadData);
+                  }
+                },
+                error: (error) => {
+                  console.error('Error uploading to Bunny:', error);
+                  this.videoFormError = 'Error al subir el video. Intenta de nuevo.';
+                  this.isUploading = false;
+                  this.cdr.detectChanges();
+                }
+              });
+          },
+          error: (error) => {
+            console.error('Error creating video in Bunny:', error);
+            this.videoFormError = error.error?.message || 'Error al crear el video en Bunny';
+            this.isUploading = false;
+            this.cdr.detectChanges();
+          }
+        });
+    } catch (error) {
+      console.error('Error in createNewVideoWithBunny:', error);
+      this.videoFormError = 'Error inesperado. Intenta de nuevo.';
+      this.isUploading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  /**
+   * Guarda el video en el backend después de subirlo a Bunny
+   */
+  private saveVideoToBackend(uploadData: BunnyUploadUrlResponse): void {
+    // Preparar datos para el backend
+    const videoData: CreateVideoRequest = {
+      courseId: this.videoForm.courseId,
+      title: this.videoForm.title,
+      description: this.videoForm.description,
+      videoUrl: uploadData.videoId, // Guardamos el videoId de Bunny
+      thumbnailUrl: uploadData.thumbnailUrl,
+      duration: this.videoForm.duration,
+      type: this.videoForm.type,
+      orderIndex: this.videoForm.orderIndex
+    };
+
+    this.adminService.createVideo(videoData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showSuccess('¡Video subido y guardado exitosamente!');
+          this.isUploading = false;
+          this.closeVideoModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error saving video to backend:', error);
+          this.videoFormError = error.error?.message || 'Error al guardar el video';
+          this.isUploading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Actualiza un video existente (solo metadatos)
+   */
+  private updateExistingVideo(): void {
+    if (!this.editingVideo) return;
+
+    this.startLoading('Actualizando video...');
+
+    // Si hay nuevo archivo, primero subirlo
+    if (this.selectedVideoFile) {
+      this.isUploading = true;
+      this.stopLoading();
+
+      this.bunnyService.createVideo(this.videoForm.title)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (uploadData) => {
+            this.bunnyUploadData = uploadData;
+
+            this.bunnyService.uploadVideoToBunny(this.selectedVideoFile!, uploadData)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: (progress) => {
+                  this.uploadProgress = progress;
+                  this.cdr.detectChanges();
+
+                  if (progress.state === 'completed') {
+                    // Actualizar con nuevo videoId
+                    this.videoForm.videoUrl = uploadData.videoId;
+                    this.videoForm.thumbnailUrl = uploadData.thumbnailUrl;
+                    this.performVideoUpdate();
+                  }
+                },
+                error: (error) => {
+                  console.error('Error uploading new video:', error);
+                  this.videoFormError = 'Error al subir el nuevo video';
+                  this.isUploading = false;
+                  this.cdr.detectChanges();
+                }
+              });
+          },
+          error: (error) => {
+            this.videoFormError = error.error?.message || 'Error al crear video en Bunny';
+            this.isUploading = false;
+            this.cdr.detectChanges();
+          }
+        });
+    } else {
+      // Solo actualizar metadatos
+      this.performVideoUpdate();
+    }
+  }
+
+  /**
+   * Realiza la actualización del video en el backend
+   */
+  private performVideoUpdate(): void {
+    if (!this.editingVideo) return;
+
+    const videoData: CreateVideoRequest = {
+      courseId: this.videoForm.courseId,
+      title: this.videoForm.title,
+      description: this.videoForm.description,
+      videoUrl: this.videoForm.videoUrl,
+      thumbnailUrl: this.videoForm.thumbnailUrl,
+      duration: this.videoForm.duration,
+      type: this.videoForm.type,
+      orderIndex: this.videoForm.orderIndex
+    };
+
+    this.adminService.updateVideo(this.editingVideo.id, videoData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showSuccess('Video actualizado');
+          this.isUploading = false;
+          this.closeVideoModal();
+          this.loadData();
+        },
+        error: (error) => {
+          this.videoFormError = error.error?.message || 'Error al actualizar video';
+          this.isUploading = false;
+          this.stopLoading();
+        }
+      });
   }
 
   deleteVideo(video: VideoResponse): void {
     if (confirm(`¿Eliminar el video "${video.title}"? Esta acción no se puede deshacer.`)) {
       this.startLoading('Eliminando video...');
 
-      this.adminService.deleteVideo(video.id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.showSuccess('Video eliminado');
-            this.loadData();
-          },
-          error: () => {
-            this.stopLoading();
-          }
-        });
-    }
-  }
-
-  /**
-   * Extrae el ID de YouTube de una URL
-   */
-  extractYoutubeId(url: string): string {
-    if (!url) return '';
-
-    // Si ya es solo un ID (11 caracteres sin espacios ni /)
-    if (/^[a-zA-Z0-9_-]{11}$/.test(url.trim())) {
-      return url.trim();
-    }
-
-    // Patrones de URL de YouTube
-    const patterns = [
-      /youtu\.be\/([a-zA-Z0-9_-]{11})/,
-      /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
-      /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
-      /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/,
-    ];
-
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) {
-        return match[1];
+      // Primero eliminar de Bunny si tiene videoId
+      if (video.videoUrl && !video.videoUrl.includes('youtube')) {
+        this.bunnyService.deleteVideo(video.videoUrl)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+              // Luego eliminar del backend
+              this.deleteVideoFromBackend(video.id);
+            },
+            error: (error) => {
+              console.warn('Error deleting from Bunny (continuing):', error);
+              // Continuar eliminando del backend aunque falle Bunny
+              this.deleteVideoFromBackend(video.id);
+            }
+          });
+      } else {
+        this.deleteVideoFromBackend(video.id);
       }
     }
-
-    // Si no coincide con ningún patrón, devolver como está
-    return url.trim();
   }
 
-  /**
-   * Genera thumbnail de YouTube
-   */
-  getYoutubeThumbnail(videoUrl: string): string {
-    const videoId = this.extractYoutubeId(videoUrl);
-    return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+  private deleteVideoFromBackend(videoId: number): void {
+    this.adminService.deleteVideo(videoId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showSuccess('Video eliminado');
+          this.loadData();
+        },
+        error: () => {
+          this.stopLoading();
+        }
+      });
   }
 
   /**
@@ -651,6 +887,22 @@ export class AdminComponent implements OnInit, OnDestroy {
       ...this.selectedCourseForVideos.theoryVideos,
       ...this.selectedCourseForVideos.practiceVideos
     ].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+  }
+
+  /**
+   * Genera thumbnail de Bunny o placeholder
+   */
+  getVideoThumbnail(video: VideoResponse): string {
+    if (video.thumbnailUrl) {
+      return video.thumbnailUrl;
+    }
+    // Placeholder si no hay thumbnail
+    return 'data:image/svg+xml,' + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180">
+        <rect fill="#1a1a1a" width="320" height="180"/>
+        <polygon fill="#333" points="160,70 200,90 160,110" />
+      </svg>
+    `);
   }
 
   // ==================== UTILIDADES ====================

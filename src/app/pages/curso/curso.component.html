@@ -91,57 +91,97 @@
       <p class="course-description" *ngIf="curso.descripcion">{{ curso.descripcion }}</p>
     </header>
 
-    <!-- Videos Grid - Todos visibles -->
+    <!-- ============== REPRODUCTOR PRINCIPAL ============== -->
+    <section class="main-player-section" *ngIf="selectedVideo">
+      <div class="player-wrapper">
+        <!-- Contenedor del video con overlays -->
+        <div class="player-container">
+          <iframe
+            [src]="getSecureVideoUrl(selectedVideo.videoUrl) | safeUrl"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allowfullscreen>
+          </iframe>
+          <!-- Overlays para ocultar branding de YouTube -->
+          <div class="yt-overlay-top"></div>
+          <div class="yt-overlay-bottom"></div>
+          <div class="yt-overlay-logo"></div>
+        </div>
+
+        <!-- Info del video actual -->
+        <div class="player-info">
+          <div class="player-title">
+            <span class="now-playing">REPRODUCIENDO</span>
+            <h2>{{ selectedVideo.titulo }}</h2>
+          </div>
+          <span class="player-duration" *ngIf="selectedVideo.duracion">{{ selectedVideo.duracion }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== LISTA DE VIDEOS ============== -->
     <section class="videos-section">
-      <div class="section-title">
-        <span class="section-number">CONTENIDO</span>
+      <div class="section-header">
         <h3>VIDEOS DEL CURSO</h3>
-        <span class="video-total">{{ getTotalVideos() }} videos disponibles</span>
+        <span class="video-count">{{ getTotalVideos() }} videos</span>
       </div>
 
       <!-- Videos de Teoría -->
-      <div class="videos-grid" *ngIf="curso.teoria">
-        <div class="video-category">
-          <span class="category-label">TEORÍA</span>
-        </div>
-        <div class="video-card" (click)="playVideo(curso.teoria!)">
-          <div class="video-thumbnail">
-            <img [src]="curso.teoria!.thumbnail" [alt]="curso.teoria!.titulo" />
-            <div class="play-overlay">
-              <div class="play-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+      <div class="video-group" *ngIf="curso.teoria">
+        <span class="group-label">TEORÍA</span>
+        <div class="video-list">
+          <div
+            class="video-item"
+            [class.active]="selectedVideo?.id === curso.teoria!.id"
+            (click)="playVideo(curso.teoria!)">
+            <div class="video-thumb">
+              <img [src]="curso.teoria!.thumbnail" [alt]="curso.teoria!.titulo" />
+              <div class="thumb-play">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
               </div>
             </div>
-            <span class="video-duration">{{ curso.teoria!.duracion }}</span>
-          </div>
-          <div class="video-info">
-            <h4>{{ curso.teoria!.titulo }}</h4>
+            <div class="video-details">
+              <h4>{{ curso.teoria!.titulo }}</h4>
+              <span class="video-meta">{{ curso.teoria!.duracion }}</span>
+            </div>
+            <div class="video-status" *ngIf="selectedVideo?.id === curso.teoria!.id">
+              <div class="playing-indicator">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Videos de Práctica -->
-      <div class="videos-grid" *ngIf="curso.practicas.length > 0">
-        <div class="video-category">
-          <span class="category-label">PRÁCTICA</span>
-        </div>
-        <div class="video-card" *ngFor="let video of curso.practicas; let i = index" (click)="playVideo(video)">
-          <div class="video-thumbnail">
-            <img [src]="video.thumbnail" [alt]="video.titulo" />
-            <div class="play-overlay">
-              <div class="play-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+      <div class="video-group" *ngIf="curso.practicas.length > 0">
+        <span class="group-label">PRÁCTICA</span>
+        <div class="video-list">
+          <div
+            class="video-item"
+            *ngFor="let video of curso.practicas; let i = index"
+            [class.active]="selectedVideo?.id === video.id"
+            (click)="playVideo(video)">
+            <div class="video-thumb">
+              <img [src]="video.thumbnail" [alt]="video.titulo" />
+              <div class="thumb-play">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
               </div>
+              <span class="thumb-number">{{ i + 1 }}</span>
             </div>
-            <span class="video-number">{{ i + 1 }}</span>
-            <span class="video-duration">{{ video.duracion }}</span>
-          </div>
-          <div class="video-info">
-            <h4>{{ video.titulo }}</h4>
+            <div class="video-details">
+              <h4>{{ video.titulo }}</h4>
+              <span class="video-meta">{{ video.duracion }}</span>
+            </div>
+            <div class="video-status" *ngIf="selectedVideo?.id === video.id">
+              <div class="playing-indicator">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -153,12 +193,16 @@
           <line x1="7" y1="2" x2="7" y2="22"></line>
           <line x1="17" y1="2" x2="17" y2="22"></line>
           <line x1="2" y1="12" x2="22" y2="12"></line>
-          <line x1="2" y1="7" x2="7" y2="7"></line>
-          <line x1="2" y1="17" x2="7" y2="17"></line>
-          <line x1="17" y1="17" x2="22" y2="17"></line>
-          <line x1="17" y1="7" x2="22" y2="7"></line>
         </svg>
         <p>Los videos del curso se están preparando</p>
+      </div>
+
+      <!-- Mensaje inicial cuando no hay video seleccionado -->
+      <div class="select-video-prompt" *ngIf="!selectedVideo && (curso.teoria || curso.practicas.length > 0)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <p>Selecciona un video para comenzar</p>
       </div>
     </section>
 
@@ -166,40 +210,6 @@
     <footer class="footer">
       <p>© 2025 Ralph Cuts Academy</p>
     </footer>
-  </div>
-</div>
-
-<!-- ============== VIDEO MODAL - REPRODUCTOR PERSONALIZADO ============== -->
-<div class="video-modal" *ngIf="showVideoModal" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <button class="close-btn" (click)="closeModal()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    </button>
-
-    <!-- Reproductor con overlay para ocultar YouTube -->
-    <div class="video-wrapper">
-      <div class="video-container">
-        <iframe
-          *ngIf="selectedVideo"
-          [src]="getSecureVideoUrl(selectedVideo.videoUrl) | safeUrl"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-          allowfullscreen>
-        </iframe>
-        <!-- Overlay superior para ocultar logo de YouTube -->
-        <div class="youtube-hide-top"></div>
-        <!-- Overlay para ocultar "Ver en YouTube" -->
-        <div class="youtube-hide-bottom"></div>
-      </div>
-    </div>
-
-    <div class="modal-info" *ngIf="selectedVideo">
-      <h3>{{ selectedVideo.titulo }}</h3>
-      <span>{{ selectedVideo.duracion }}</span>
-    </div>
   </div>
 </div>
 
