@@ -9,6 +9,7 @@ import {
   BunnyUploadUrlResponse,
   BunnyVideoUrls
 } from '../models/bunny.model';
+import * as tus from 'tus-js-client';
 
 export interface UploadProgress {
   state: 'pending' | 'uploading' | 'processing' | 'completed' | 'error';
@@ -22,6 +23,7 @@ export interface UploadProgress {
 })
 export class BunnyService {
   private readonly API_URL = `${environment.apiUrl}/bunny`;
+  private readonly TUS_ENDPOINT = 'https://video.bunnycdn.com/tusupload';
 
   // Subject para tracking de progreso de upload
   private uploadProgress$ = new BehaviorSubject<UploadProgress>({
@@ -90,12 +92,14 @@ export class BunnyService {
   }
 
   /**
-   * Sube un archivo de video directamente a Bunny CDN
+   * Sube un archivo de video directamente a Bunny CDN usando TUS protocol
    * @param file Archivo de video a subir
    * @param uploadData Datos de upload obtenidos de createVideo()
    */
   uploadVideoToBunny(file: File, uploadData: BunnyUploadUrlResponse): Observable<UploadProgress> {
     const progressSubject = new Subject<UploadProgress>();
+
+    console.log('Bunny upload data:', uploadData);
 
     // Resetear progreso
     this.uploadProgress$.next({
@@ -104,68 +108,77 @@ export class BunnyService {
       message: 'Preparando upload...'
     });
 
-    // Headers para Bunny CDN
-    const headers = new HttpHeaders({
-      'AuthorizationSignature': uploadData.authorizationSignature,
-      'AuthorizationExpire': uploadData.authorizationExpire.toString(),
-      'VideoId': uploadData.videoId,
-      'LibraryId': uploadData.libraryId
-    });
-
-    // Crear request con reporte de progreso
-    const req = new HttpRequest('PUT', uploadData.uploadUrl, file, {
-      headers: headers,
-      reportProgress: true
-    });
-
-    this.http.request(req).subscribe({
-      next: (event) => {
-        if (event.type === HttpEventType.UploadProgress) {
-          const progress = event.total ? Math.round((100 * event.loaded) / event.total) : 0;
-          const update: UploadProgress = {
-            state: 'uploading',
-            progress: progress,
-            message: `Subiendo video... ${progress}%`,
-            videoId: uploadData.videoId
-          };
-          this.uploadProgress$.next(update);
-          progressSubject.next(update);
-        } else if (event.type === HttpEventType.Response) {
-          const update: UploadProgress = {
-            state: 'processing',
-            progress: 100,
-            message: 'Video subido. Procesando en Bunny...',
-            videoId: uploadData.videoId
-          };
-          this.uploadProgress$.next(update);
-          progressSubject.next(update);
-
-          // Completar después de un momento
-          setTimeout(() => {
-            const completed: UploadProgress = {
-              state: 'completed',
-              progress: 100,
-              message: '¡Video subido exitosamente!',
-              videoId: uploadData.videoId
-            };
-            this.uploadProgress$.next(completed);
-            progressSubject.next(completed);
-            progressSubject.complete();
-          }, 1000);
-        }
+    // Crear upload TUS con headers pre-signed
+    const upload = new tus.Upload(file, {
+      endpoint: this.TUS_ENDPOINT,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      headers: {
+        'AuthorizationSignature': uploadData.authorizationSignature,
+        'AuthorizationExpire': uploadData.authorizationExpire.toString(),
+        'VideoId': uploadData.videoId,
+        'LibraryId': uploadData.libraryId
       },
-      error: (error) => {
-        console.error('Error uploading to Bunny:', error);
+      metadata: {
+        filetype: file.type,
+        title: file.name
+      },
+      onError: (error) => {
+        console.error('TUS upload error:', error);
         const errorUpdate: UploadProgress = {
           state: 'error',
           progress: 0,
-          message: 'Error al subir el video. Intenta de nuevo.',
+          message: 'Error al subir el video: ' + error.message,
           videoId: uploadData.videoId
         };
         this.uploadProgress$.next(errorUpdate);
         progressSubject.next(errorUpdate);
         progressSubject.error(error);
+      },
+      onProgress: (bytesUploaded, bytesTotal) => {
+        const progress = Math.round((bytesUploaded / bytesTotal) * 100);
+        const update: UploadProgress = {
+          state: 'uploading',
+          progress: progress,
+          message: `Subiendo video... ${progress}%`,
+          videoId: uploadData.videoId
+        };
+        this.uploadProgress$.next(update);
+        progressSubject.next(update);
+      },
+      onSuccess: () => {
+        console.log('TUS upload success!');
+        const processingUpdate: UploadProgress = {
+          state: 'processing',
+          progress: 100,
+          message: 'Video subido. Procesando en Bunny...',
+          videoId: uploadData.videoId
+        };
+        this.uploadProgress$.next(processingUpdate);
+        progressSubject.next(processingUpdate);
+
+        // Completar después de un momento
+        setTimeout(() => {
+          const completed: UploadProgress = {
+            state: 'completed',
+            progress: 100,
+            message: '¡Video subido exitosamente!',
+            videoId: uploadData.videoId
+          };
+          this.uploadProgress$.next(completed);
+          progressSubject.next(completed);
+          progressSubject.complete();
+        }, 1000);
       }
+    });
+
+    // Verificar si hay uploads previos para continuar (resumable)
+    upload.findPreviousUploads().then((previousUploads) => {
+      if (previousUploads.length) {
+        console.log('Found previous upload, resuming...');
+        upload.resumeFromPreviousUpload(previousUploads[0]);
+      }
+      // Iniciar upload
+      upload.start();
     });
 
     return progressSubject.asObservable();
@@ -179,7 +192,7 @@ export class BunnyService {
     return new Promise((resolve, reject) => {
       this.createVideo(title).subscribe({
         next: (uploadData) => {
-          // Luego subir el archivo
+          // Luego subir el archivo usando TUS
           const upload$ = this.uploadVideoToBunny(file, uploadData);
           resolve(upload$);
         },
