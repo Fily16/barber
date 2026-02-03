@@ -15,6 +15,7 @@ interface Video {
   thumbnail: string;
   videoUrl: string;
   embedUrl: string;
+  descripcion?: string;
 }
 
 interface CursoData {
@@ -46,6 +47,7 @@ export class CursoComponent implements OnInit, OnDestroy {
   showSessionClosedModal: boolean = false;
   courseNotFound: boolean = false;
   showVideoModal: boolean = false;
+  playingVideoId: string | null = null;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -91,6 +93,7 @@ export class CursoComponent implements OnInit, OnDestroy {
     this.showSessionModal = false;
     this.showSessionClosedModal = false;
     this.selectedVideo = null;
+    this.playingVideoId = null;
     this.isLoading = false;
     this.courseNotFound = false;
   }
@@ -232,7 +235,8 @@ export class CursoComponent implements OnInit, OnDestroy {
       duracion: video.duration || '',
       thumbnail: video.thumbnailUrl || this.getBunnyThumbnail(videoId),
       videoUrl: videoId,
-      embedUrl: this.getBunnyEmbedUrl(videoId)
+      embedUrl: this.getBunnyEmbedUrl(videoId),
+      descripcion: video.description || ''
     };
   }
 
@@ -249,6 +253,22 @@ export class CursoComponent implements OnInit, OnDestroy {
     this.selectedVideo = video;
     this.showVideoModal = true;
     document.body.style.overflow = 'hidden';
+  }
+
+  playVideoInline(video: Video): void {
+    this.authService.checkSession();
+    // Si ya está reproduciendo este video, lo pausamos
+    if (this.playingVideoId === video.id) {
+      this.playingVideoId = null;
+    } else {
+      this.playingVideoId = video.id;
+    }
+    this.cdr.detectChanges();
+  }
+
+  stopVideo(): void {
+    this.playingVideoId = null;
+    this.cdr.detectChanges();
   }
 
   closeModal(): void {

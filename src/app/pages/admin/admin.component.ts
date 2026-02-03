@@ -86,6 +86,8 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   // ==================== BUNNY UPLOAD ====================
   selectedVideoFile: File | null = null;
+  selectedThumbnailFile: File | null = null;
+  thumbnailPreview: string | null = null;
   uploadProgress: UploadProgress = {
     state: 'pending',
     progress: 0,
@@ -530,6 +532,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     };
     this.videoFormError = '';
     this.selectedVideoFile = null;
+    this.selectedThumbnailFile = null;
+    this.thumbnailPreview = null;
     this.bunnyUploadData = null;
     this.bunnyService.resetProgress();
     this.showVideoModal = true;
@@ -552,6 +556,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     };
     this.videoFormError = '';
     this.selectedVideoFile = null;
+    this.selectedThumbnailFile = null;
+    this.thumbnailPreview = video.thumbnailUrl || null;
     this.bunnyUploadData = null;
     this.bunnyService.resetProgress();
     this.showVideoModal = true;
@@ -567,6 +573,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.showVideoModal = false;
     this.editingVideo = null;
     this.selectedVideoFile = null;
+    this.selectedThumbnailFile = null;
+    this.thumbnailPreview = null;
     this.bunnyUploadData = null;
     this.isUploading = false;
     this.bunnyService.resetProgress();
@@ -609,6 +617,53 @@ export class AdminComponent implements OnInit, OnDestroy {
 
       this.cdr.detectChanges();
     }
+  }
+
+  /**
+   * Maneja la selección de thumbnail
+   */
+  onThumbnailSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+
+      // Validar tipo de archivo
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        this.videoFormError = 'Formato de imagen no válido. Usa JPG, PNG o WebP.';
+        this.cdr.detectChanges();
+        return;
+      }
+
+      // Validar tamaño (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        this.videoFormError = 'La imagen es muy grande. Máximo 5MB.';
+        this.cdr.detectChanges();
+        return;
+      }
+
+      this.selectedThumbnailFile = file;
+      this.videoFormError = '';
+
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.thumbnailPreview = e.target?.result as string;
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  /**
+   * Remueve el thumbnail seleccionado
+   */
+  removeThumbnail(): void {
+    this.selectedThumbnailFile = null;
+    this.thumbnailPreview = null;
+    this.videoForm.thumbnailUrl = '';
+    this.cdr.detectChanges();
   }
 
   /**

@@ -507,6 +507,41 @@
                   placeholder="Breve descripción del contenido del video"></textarea>
       </div>
 
+      <!-- Thumbnail personalizado -->
+      <div class="form-group">
+        <label>Thumbnail (opcional)</label>
+        <div class="thumbnail-upload-zone" (click)="thumbnailInput.click()" [class.has-file]="selectedThumbnailFile || thumbnailPreview">
+          <input
+            type="file"
+            #thumbnailInput
+            (change)="onThumbnailSelected($event)"
+            accept="image/jpeg,image/png,image/webp"
+            style="display: none"
+          />
+          <div class="thumbnail-upload-content" *ngIf="!selectedThumbnailFile && !thumbnailPreview">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <p>Clic para subir thumbnail</p>
+            <span>JPG, PNG o WebP (recomendado: 1280x720)</span>
+          </div>
+          <div class="thumbnail-preview" *ngIf="selectedThumbnailFile || thumbnailPreview">
+            <img [src]="thumbnailPreview" alt="Thumbnail preview" />
+            <div class="thumbnail-overlay">
+              <button type="button" class="change-thumbnail-btn" (click)="$event.stopPropagation(); thumbnailInput.click()">
+                Cambiar
+              </button>
+              <button type="button" class="remove-thumbnail-btn" (click)="$event.stopPropagation(); removeThumbnail()">
+                Quitar
+              </button>
+            </div>
+          </div>
+        </div>
+        <span class="form-hint">Si no subes un thumbnail, se usará un frame automático del video</span>
+      </div>
+
       <div class="form-error" *ngIf="videoFormError">{{ videoFormError }}</div>
       <div class="modal-actions">
         <button type="button" class="btn-secondary" (click)="closeVideoModal()">Cancelar</button>
