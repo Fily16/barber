@@ -1,8 +1,45 @@
-/* Productos Page - Catálogo de Cursos */
+/* ==================== CSS VARIABLES ==================== */
+:host {
+  --color-bg: #0a0a0a;
+  --color-surface: rgba(255, 255, 255, 0.02);
+  --color-primary: #c9a227;
+  --color-primary-hover: #ddb52f;
+  --color-text: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.6);
+  --color-text-subtle: rgba(255, 255, 255, 0.3);
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-hover: rgba(255, 255, 255, 0.12);
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+
+  /* Touch target minimum */
+  --touch-target: 44px;
+
+  /* Safe area for notch devices */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  /* Transitions */
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.7s ease;
+
+  /* Border radius */
+  --radius-sm: 4px;
+}
+
+/* ==================== BASE ==================== */
 .productos-container {
-  background: #0a0a0a;
-  color: #fff;
+  background: var(--color-bg);
+  color: var(--color-text);
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -16,100 +53,108 @@
   z-index: 1000;
 }
 
-/* Navbar */
+/* ==================== NAVBAR ==================== */
 .navbar {
-  padding: 0.5rem 2rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-md);
+  padding-top: calc(var(--space-md) + var(--safe-top));
+  padding-left: calc(var(--space-md) + var(--safe-left));
+  padding-right: calc(var(--space-md) + var(--safe-right));
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  position: relative;
-  z-index: 10;
+  align-items: center;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 100;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .nav-logo {
   display: flex;
   align-items: center;
-  margin-left: -50px;
-  margin-top: -80px;
 }
 
 .nav-logo-img {
-  height: 270px;
+  height: 36px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 2px 10px rgba(201, 162, 39, 0.2));
-  transition: all 0.3s ease;
-}
-
-.nav-logo-img:hover {
-  filter: drop-shadow(0 4px 15px rgba(201, 162, 39, 0.3));
-  transform: scale(1.02);
+  filter: drop-shadow(0 2px 8px rgba(201, 162, 39, 0.2));
+  transition: all var(--transition-normal);
 }
 
 .nav-link {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1.1rem;
-  color: #fff;
+  font-size: 0.85rem;
+  color: var(--color-text);
   text-decoration: none;
-  letter-spacing: 0.15em;
-  transition: all 0.3s ease;
+  letter-spacing: 0.1em;
+  transition: all var(--transition-normal);
   position: relative;
-  padding: 0.5rem 0;
-  margin-top: 40px;
-  margin-right: 0.5rem;
+  padding: var(--space-sm);
+  min-height: var(--touch-target);
+  display: flex;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .nav-link::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
+  bottom: 6px;
+  left: var(--space-sm);
+  right: var(--space-sm);
   height: 1px;
-  background: #c9a227;
-  transition: width 0.3s ease;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transition: transform var(--transition-normal);
 }
 
-.nav-link:hover {
-  color: #c9a227;
+.nav-link:active {
+  color: var(--color-primary);
 }
 
-.nav-link:hover::after {
-  width: 100%;
+.nav-link:active::after {
+  transform: scaleX(1);
 }
 
-/* Header */
+/* ==================== HEADER ==================== */
 .productos-header {
   text-align: center;
-  padding: 2rem 2rem 3rem;
-  margin-top: -80px;
+  padding: calc(80px + var(--safe-top)) var(--space-md) var(--space-lg);
 }
 
 .productos-header h1 {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  letter-spacing: 0.15em;
+  font-size: clamp(2rem, 8vw, 4rem);
+  letter-spacing: 0.1em;
+  line-height: 1.1;
 }
 
 .productos-header h1 span {
-  color: #c9a227;
+  color: var(--color-primary);
 }
 
-/* Curso Section */
+/* ==================== CURSO SECTION ==================== */
 .curso-section {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 0 2rem 4rem;
+  padding: 0 var(--space-md) var(--space-xl);
+  padding-bottom: calc(var(--space-xl) + var(--safe-bottom));
 }
 
-/* Curso Card Main */
+/* ==================== CURSO CARD ==================== */
 .curso-card-main {
-  max-width: 700px;
+  max-width: 600px;
   width: 100%;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
@@ -119,17 +164,14 @@
   aspect-ratio: 16/9;
   overflow: hidden;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .curso-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.7s ease;
-}
-
-.curso-image:hover img {
-  transform: scale(1.08);
+  transition: transform var(--transition-slow);
 }
 
 .curso-overlay {
@@ -139,199 +181,197 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.4s ease;
 }
 
-.curso-image:hover .curso-overlay {
-  opacity: 1;
-}
-
 .play-icon {
-  width: 80px;
-  height: 80px;
-  border: 2px solid #c9a227;
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--color-primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #c9a227;
-  transform: scale(0.8);
+  color: var(--color-primary);
   transition: all 0.4s ease;
   background: rgba(10, 10, 10, 0.5);
 }
 
 .play-icon svg {
-  margin-left: 4px;
+  width: 24px;
+  height: 24px;
+  margin-left: 3px;
 }
 
-.curso-image:hover .play-icon {
-  transform: scale(1);
+.curso-image:active .play-icon {
+  transform: scale(0.95);
   background: rgba(201, 162, 39, 0.15);
 }
 
-/* Curso Info */
+/* ==================== CURSO INFO ==================== */
 .curso-info {
   padding: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--color-border);
 }
 
 .info-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 2rem;
+  padding: var(--space-md);
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: background var(--transition-normal);
+  min-height: var(--touch-target);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.info-header:hover {
+.info-header:active {
   background: rgba(255, 255, 255, 0.02);
 }
 
 .info-header h3 {
   font-family: 'DM Sans', sans-serif;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text-muted);
 }
 
 .toggle-arrow {
-  color: rgba(255, 255, 255, 0.4);
-  transition: all 0.3s ease;
+  color: var(--color-text-subtle);
+  transition: all var(--transition-normal);
   display: flex;
   align-items: center;
+  padding: var(--space-sm);
+}
+
+.toggle-arrow svg {
+  width: 20px;
+  height: 20px;
 }
 
 .toggle-arrow.open {
   transform: rotate(180deg);
-  color: #c9a227;
+  color: var(--color-primary);
 }
 
-/* Info Content - Expandible */
+/* Info Content */
 .info-content {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.4s ease, padding 0.4s ease;
-  padding: 0 2rem;
+  padding: 0 var(--space-md);
 }
 
 .info-content.open {
   max-height: 300px;
-  padding: 0 2rem 1.5rem;
+  padding: 0 var(--space-md) var(--space-md);
 }
 
 .info-content p {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.8;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.7;
 }
 
-/* Curso Footer */
+/* ==================== CURSO FOOTER ==================== */
 .curso-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-top: 1px solid var(--color-border);
 }
 
 .curso-meta {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
-  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  letter-spacing: 0.05em;
 }
 
 .curso-btn {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 1rem;
-  color: #c9a227;
+  font-size: 0.95rem;
+  color: var(--color-primary);
   text-decoration: none;
-  letter-spacing: 0.15em;
-  padding: 0.5rem 0;
+  letter-spacing: 0.1em;
+  padding: var(--space-sm) 0;
   position: relative;
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
+  min-height: var(--touch-target);
+  display: inline-flex;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .curso-btn::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: 6px;
   left: 0;
   width: 100%;
   height: 1px;
   background: rgba(201, 162, 39, 0.4);
-  transition: background 0.3s ease;
+  transition: background var(--transition-normal);
 }
 
-.curso-btn:hover {
-  color: #fff;
+.curso-btn:active {
+  color: var(--color-text);
 }
 
-.curso-btn:hover::after {
-  background: #c9a227;
+.curso-btn:active::after {
+  background: var(--color-primary);
 }
 
-/* Footer */
+/* ==================== FOOTER ==================== */
 .footer {
   text-align: center;
-  padding: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: var(--space-lg);
+  padding-bottom: calc(var(--space-lg) + var(--safe-bottom));
+  border-top: 1px solid var(--color-border);
 }
 
 .footer p {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.65rem;
+  color: var(--color-text-subtle);
 }
 
-/* ==========================================
-   RESPONSIVE - TABLETS
-   ========================================== */
-@media (max-width: 768px) {
+/* ==================== TABLET (min-width: 600px) ==================== */
+@media (min-width: 600px) {
   .navbar {
-    padding: 0.5rem 1.25rem;
-  }
-
-  .nav-logo {
-    margin-left: -30px;
-    margin-top: -50px;
+    padding: var(--space-md) var(--space-lg);
   }
 
   .nav-logo-img {
-    height: 210px;
+    height: 44px;
   }
 
   .nav-link {
     font-size: 1rem;
-    margin-top: 25px;
+    letter-spacing: 0.15em;
+  }
+
+  .nav-link:hover {
+    color: var(--color-primary);
+  }
+
+  .nav-link:hover::after {
+    transform: scaleX(1);
   }
 
   .productos-header {
-    padding: 1rem 1.5rem 2rem;
-    margin-top: -50px;
+    padding: calc(100px + var(--safe-top)) var(--space-lg) var(--space-xl);
   }
 
   .curso-section {
-    padding: 0 1.5rem 3rem;
+    padding: 0 var(--space-lg) var(--space-xl);
   }
 
-  .info-header {
-    padding: 1.25rem 1.5rem;
-  }
-
-  .info-content {
-    padding: 0 1.5rem;
-  }
-
-  .info-content.open {
-    padding: 0 1.5rem 1.25rem;
-  }
-
-  .curso-footer {
-    padding: 1.25rem 1.5rem;
+  .curso-card-main {
+    max-width: 650px;
   }
 
   .play-icon {
@@ -340,95 +380,166 @@
   }
 
   .play-icon svg {
-    width: 32px;
-    height: 32px;
-  }
-}
-
-/* ==========================================
-   RESPONSIVE - MÓVILES
-   ========================================== */
-@media (max-width: 480px) {
-  .navbar {
-    padding: 0.5rem 1rem;
+    width: 30px;
+    height: 30px;
   }
 
-  .nav-logo {
-    margin-left: -25px;
-    margin-top: -40px;
+  /* Show overlay on hover for tablet */
+  .curso-overlay {
+    opacity: 0;
   }
 
-  .nav-logo-img {
-    height: 180px;
+  .curso-image:hover .curso-overlay {
+    opacity: 1;
   }
 
-  .nav-link {
-    font-size: 0.9rem;
-    margin-top: 15px;
+  .curso-image:hover img {
+    transform: scale(1.05);
   }
 
-  .productos-header {
-    padding: 0.5rem 1rem 1.5rem;
-    margin-top: -40px;
-  }
-
-  .productos-header h1 {
-    font-size: 2rem;
-  }
-
-  .curso-section {
-    padding: 0 1rem 2rem;
+  .curso-image:hover .play-icon {
+    transform: scale(1.1);
   }
 
   .info-header {
-    padding: 1rem 1.25rem;
+    padding: var(--space-lg);
   }
 
   .info-header h3 {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 
   .info-content {
-    padding: 0 1.25rem;
+    padding: 0 var(--space-lg);
   }
 
   .info-content.open {
-    padding: 0 1.25rem 1rem;
+    padding: 0 var(--space-lg) var(--space-lg);
   }
 
   .info-content p {
-    font-size: 0.875rem;
+    font-size: 0.95rem;
   }
 
   .curso-footer {
-    padding: 1rem 1.25rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-lg);
   }
 
-  .play-icon {
-    width: 60px;
-    height: 60px;
+  .curso-meta {
+    font-size: 0.8rem;
   }
 
-  .play-icon svg {
-    width: 28px;
-    height: 28px;
+  .curso-btn {
+    font-size: 1rem;
   }
 }
 
-/* ==========================================
-   RESPONSIVE - MÓVILES MUY PEQUEÑOS
-   ========================================== */
-@media (max-width: 360px) {
-  .nav-logo {
-    margin-left: -20px;
-    margin-top: -35px;
+/* ==================== DESKTOP (min-width: 1024px) ==================== */
+@media (min-width: 1024px) {
+  .navbar {
+    padding: var(--space-lg) var(--space-xl);
   }
 
   .nav-logo-img {
-    height: 150px;
+    height: 52px;
+  }
+
+  .nav-logo-img:hover {
+    filter: drop-shadow(0 4px 15px rgba(201, 162, 39, 0.3));
+    transform: scale(1.02);
+  }
+
+  .nav-link {
+    font-size: 1.1rem;
+  }
+
+  .productos-header {
+    padding: calc(120px + var(--safe-top)) var(--space-xl) 3rem;
+  }
+
+  .productos-header h1 {
+    font-size: 4rem;
+    letter-spacing: 0.15em;
+  }
+
+  .curso-section {
+    padding: 0 var(--space-xl) 4rem;
+  }
+
+  .curso-card-main {
+    max-width: 700px;
+  }
+
+  .play-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .play-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .info-header:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .info-content p {
+    line-height: 1.8;
+  }
+
+  .curso-btn:hover {
+    color: var(--color-text);
+  }
+
+  .curso-btn:hover::after {
+    background: var(--color-primary);
+  }
+
+  .footer p {
+    font-size: 0.7rem;
+  }
+}
+
+/* ==================== LANDSCAPE MOBILE ==================== */
+@media (max-height: 500px) and (orientation: landscape) {
+  .productos-header {
+    padding: calc(70px + var(--safe-top)) var(--space-md) var(--space-md);
   }
 
   .productos-header h1 {
     font-size: 1.75rem;
+  }
+
+  .curso-section {
+    padding: 0 var(--space-md) var(--space-md);
+  }
+
+  .play-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .play-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .footer {
+    padding: var(--space-md);
+  }
+}
+
+/* ==================== REDUCED MOTION ==================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
