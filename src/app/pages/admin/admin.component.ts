@@ -96,12 +96,8 @@ export class AdminComponent implements OnInit, OnDestroy {
   isUploading = false;
   bunnyUploadData: BunnyUploadUrlResponse | null = null;
 
-  // Estado para procesamiento de archivo (iOS)
-  isProcessingFile = false;
-  processingFileMessage = '';
+  // Estado para iOS
   isIOS = false;
-  fileSelectionTimeout: any = null;
-  showIOSHelp = false;
 
   // Mensajes
   successMessage = '';
@@ -148,11 +144,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.clearLoadingTimer();
-
-    // Limpiar timeout de selección de archivo
-    if (this.fileSelectionTimeout) {
-      clearTimeout(this.fileSelectionTimeout);
-    }
   }
 
   // ==================== LOADING CON MENSAJE AMIGABLE ====================
@@ -606,20 +597,9 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   /**
    * Maneja la selección de archivo de video
-   * Optimizado para iOS con archivos grandes
    */
   onVideoFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-
-    // Limpiar timeout si existe
-    if (this.fileSelectionTimeout) {
-      clearTimeout(this.fileSelectionTimeout);
-      this.fileSelectionTimeout = null;
-    }
-
-    // Reset el estado de procesamiento
-    this.isProcessingFile = false;
-    this.processingFileMessage = '';
 
     console.log('[FileSelect] Evento change disparado');
     console.log('[FileSelect] input.files:', input.files);
@@ -627,12 +607,6 @@ export class AdminComponent implements OnInit, OnDestroy {
 
     if (!input.files || input.files.length === 0) {
       console.log('[FileSelect] No se seleccionó ningún archivo o fue cancelado');
-      // En iOS, esto puede significar que el archivo era muy grande o hubo un problema
-      if (this.isIOS) {
-        // Mostrar ayuda después de un intento fallido
-        this.showIOSHelp = true;
-        this.videoFormError = '';
-      }
       this.cdr.detectChanges();
       return;
     }
@@ -648,9 +622,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     // Validar que el archivo tenga tamaño (en iOS a veces viene vacío)
     if (file.size === 0) {
       console.error('[FileSelect] Archivo con tamaño 0 - posible error de iOS');
-      this.videoFormError = 'El archivo parece estar vacío. iOS puede tener problemas con videos muy largos. Prueba las alternativas mostradas arriba.';
+      this.videoFormError = 'El archivo parece estar vacío. Intenta seleccionarlo desde la app Archivos.';
       this.selectedVideoFile = null;
-      this.showIOSHelp = true;
       input.value = '';
       this.cdr.detectChanges();
       return;
@@ -695,7 +668,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
 
     this.selectedVideoFile = file;
-    this.showIOSHelp = false;
 
     // Si no hay título, usar nombre del archivo
     if (!this.videoForm.title) {
@@ -707,82 +679,30 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Abre el selector de archivos con manejo especial para iOS
+   * Abre el selector de archivos
    */
   openFileSelector(inputElement: HTMLInputElement): void {
-    console.log('[FileSelector] Abriendo selector, isIOS:', this.isIOS);
-
-    // Limpiar cualquier timeout anterior
-    if (this.fileSelectionTimeout) {
-      clearTimeout(this.fileSelectionTimeout);
-    }
+    console.log('[FileSelector] Abriendo selector');
 
     // Resetear el input para permitir seleccionar el mismo archivo
     inputElement.value = '';
-
-    if (this.isIOS) {
-      this.isProcessingFile = true;
-      this.processingFileMessage = 'Selecciona un video...';
-      this.videoFormError = '';
-      this.cdr.detectChanges();
-
-      // Timeout extendido para iOS - videos grandes tardan mucho en cargar
-      this.fileSelectionTimeout = setTimeout(() => {
-        console.log('[FileSelector] Timeout de selección alcanzado');
-        if (this.isProcessingFile && !this.selectedVideoFile) {
-          this.isProcessingFile = false;
-          this.processingFileMessage = '';
-          this.cdr.detectChanges();
-        }
-      }, 300000); // 5 minutos para seleccionar (videos muy grandes tardan mucho)
-    }
+    this.videoFormError = '';
 
     // Click en el input
     inputElement.click();
   }
 
   /**
-   * Detecta cuando la app vuelve al foco (usuario volvió de la galería)
+   * Detecta cuando la app vuelve al foco (para debugging)
    */
   private setupVisibilityListener(): void {
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && this.isProcessingFile) {
-        console.log('[Visibility] App visible de nuevo, esperando archivo...');
-        // Dar tiempo extra para que el archivo se procese en iOS
-        setTimeout(() => {
-          if (this.isProcessingFile && !this.selectedVideoFile) {
-            this.isProcessingFile = false;
-            this.processingFileMessage = '';
-            // Mostrar ayuda si el archivo no se cargó
-            this.showIOSHelp = true;
-            this.cdr.detectChanges();
-          }
-        }, 8000); // 8 segundos después de volver - iOS necesita tiempo para procesar
+      if (document.visibilityState === 'visible') {
+        console.log('[Visibility] App visible de nuevo');
+        // Forzar detección de cambios por si iOS no lo hizo
+        this.cdr.detectChanges();
       }
     });
-
-    // También escuchar el evento focus para mayor compatibilidad
-    window.addEventListener('focus', () => {
-      if (this.isProcessingFile) {
-        console.log('[Focus] Ventana en foco de nuevo');
-        setTimeout(() => {
-          if (this.isProcessingFile && !this.selectedVideoFile) {
-            this.isProcessingFile = false;
-            this.processingFileMessage = '';
-            this.showIOSHelp = true;
-            this.cdr.detectChanges();
-          }
-        }, 8000);
-      }
-    });
-  }
-
-  /**
-   * Cierra el mensaje de ayuda de iOS
-   */
-  closeIOSHelp(): void {
-    this.showIOSHelp = false;
-    this.cdr.detectChanges();
   }
 
   /**

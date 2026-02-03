@@ -424,43 +424,12 @@
             <line x1="12" y1="8" x2="12" y2="12"></line>
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
-          <span><strong>iPhone/iPad:</strong> Para videos largos (+30 min), usa la opción "Usar desde Archivos" o sube desde una computadora.</span>
-        </div>
-
-        <!-- Ayuda de iOS expandida -->
-        <div class="ios-help-expanded" *ngIf="showIOSHelp && isIOS">
-          <div class="ios-help-header">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            <span>¿Problemas para subir videos largos?</span>
-            <button type="button" class="ios-help-close" (click)="closeIOSHelp()">×</button>
-          </div>
-          <div class="ios-help-content">
-            <p><strong>iOS tiene limitaciones con videos muy grandes.</strong> Prueba estas alternativas:</p>
-            <ol>
-              <li><strong>Usar "Archivos":</strong> Cuando se abra el selector, elige "Explorar" → "Archivos" y selecciona el video desde ahí.</li>
-              <li><strong>Comprimir el video:</strong> Usa una app como "Comprimir Video" para reducir el tamaño antes de subirlo.</li>
-              <li><strong>Subir desde computadora:</strong> Es la opción más confiable para videos de más de 1 hora.</li>
-              <li><strong>Dividir el video:</strong> Si es un video muy largo, considera dividirlo en partes.</li>
-            </ol>
-          </div>
-        </div>
-
-        <!-- Estado de procesamiento -->
-        <div class="file-processing" *ngIf="isProcessingFile">
-          <div class="spinner-small"></div>
-          <span>{{ processingFileMessage || 'Procesando archivo...' }}</span>
-          <p class="file-processing-hint" *ngIf="isIOS">Esto puede tardar varios minutos para videos largos. No cierres la app.</p>
+          <span><strong>iPhone/iPad:</strong> Si tienes problemas, selecciona el video desde la app "Archivos" en vez de Fotos.</span>
         </div>
 
         <div class="file-upload-zone"
              (click)="openFileSelector(fileInput)"
-             [class.has-file]="selectedVideoFile"
-             [class.processing]="isProcessingFile"
-             *ngIf="!isProcessingFile">
+             [class.has-file]="selectedVideoFile">
           <!-- Input simplificado para mejor compatibilidad iOS -->
           <input
             type="file"
