@@ -96,6 +96,13 @@ export class AdminComponent implements OnInit, OnDestroy {
   isUploading = false;
   bunnyUploadData: BunnyUploadUrlResponse | null = null;
 
+  // Estado para procesamiento de archivo (iOS)
+  isProcessingFile = false;
+  processingFileMessage = '';
+  isIOS = false;
+  fileSelectionTimeout: any = null;
+  showIOSHelp = false;
+
   // Mensajes
   successMessage = '';
 
@@ -110,6 +117,17 @@ export class AdminComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    // Detectar iOS
+    this.isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    console.log('[Admin] Dispositivo iOS detectado:', this.isIOS);
+
+    // Configurar listener de visibilidad para iOS
+    if (this.isIOS) {
+      this.setupVisibilityListener();
+    }
+
     // Verificar si ya está autenticado como admin
     const user = this.authService.getCurrentUser();
     if (user && user.role === 'ADMIN') {
@@ -130,6 +148,11 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.clearLoadingTimer();
+
+    // Limpiar timeout de selección de archivo
+    if (this.fileSelectionTimeout) {
+      clearTimeout(this.fileSelectionTimeout);
+    }
   }
 
   // ==================== LOADING CON MENSAJE AMIGABLE ====================
@@ -583,40 +606,183 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   /**
    * Maneja la selección de archivo de video
+   * Optimizado para iOS con archivos grandes
    */
   onVideoFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const file = input.files[0];
 
-      // Validar tipo de archivo
-      const validTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'];
-      if (!validTypes.includes(file.type)) {
-        this.videoFormError = 'Formato no válido. Usa MP4, WebM, MOV o AVI.';
-        this.selectedVideoFile = null;
-        this.cdr.detectChanges();
-        return;
-      }
-
-      // Validar tamaño (max 15GB)
-      const maxSize = 15 * 1024 * 1024 * 1024; // 15GB
-      if (file.size > maxSize) {
-        this.videoFormError = 'El archivo es muy grande. Máximo 15GB.';
-        this.selectedVideoFile = null;
-        this.cdr.detectChanges();
-        return;
-      }
-
-      this.selectedVideoFile = file;
-      this.videoFormError = '';
-
-      // Si no hay título, usar nombre del archivo
-      if (!this.videoForm.title) {
-        this.videoForm.title = file.name.replace(/\.[^/.]+$/, '');
-      }
-
-      this.cdr.detectChanges();
+    // Limpiar timeout si existe
+    if (this.fileSelectionTimeout) {
+      clearTimeout(this.fileSelectionTimeout);
+      this.fileSelectionTimeout = null;
     }
+
+    // Reset el estado de procesamiento
+    this.isProcessingFile = false;
+    this.processingFileMessage = '';
+
+    console.log('[FileSelect] Evento change disparado');
+    console.log('[FileSelect] input.files:', input.files);
+    console.log('[FileSelect] input.files.length:', input.files?.length);
+
+    if (!input.files || input.files.length === 0) {
+      console.log('[FileSelect] No se seleccionó ningún archivo o fue cancelado');
+      // En iOS, esto puede significar que el archivo era muy grande o hubo un problema
+      if (this.isIOS) {
+        // Mostrar ayuda después de un intento fallido
+        this.showIOSHelp = true;
+        this.videoFormError = '';
+      }
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const file = input.files[0];
+    console.log('[FileSelect] Archivo recibido:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified
+    });
+
+    // Validar que el archivo tenga tamaño (en iOS a veces viene vacío)
+    if (file.size === 0) {
+      console.error('[FileSelect] Archivo con tamaño 0 - posible error de iOS');
+      this.videoFormError = 'El archivo parece estar vacío. iOS puede tener problemas con videos muy largos. Prueba las alternativas mostradas arriba.';
+      this.selectedVideoFile = null;
+      this.showIOSHelp = true;
+      input.value = '';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Validar tipo de archivo - más permisivo para iOS
+    const extension = file.name.toLowerCase().split('.').pop() || '';
+    const validExtensions = ['mp4', 'webm', 'mov', 'avi', 'm4v', 'mkv', '3gp'];
+
+    // En iOS, el tipo MIME puede venir vacío o incorrecto para videos
+    const isValidByExtension = validExtensions.includes(extension);
+    const isValidByType = !file.type || file.type.startsWith('video/');
+
+    if (!isValidByExtension && !isValidByType) {
+      this.videoFormError = 'Formato no válido. Usa MP4, WebM, MOV o AVI.';
+      this.selectedVideoFile = null;
+      input.value = '';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Validar tamaño (max 15GB)
+    const maxSize = 15 * 1024 * 1024 * 1024;
+    if (file.size > maxSize) {
+      this.videoFormError = 'El archivo es muy grande. Máximo 15GB.';
+      this.selectedVideoFile = null;
+      input.value = '';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Info del tamaño
+    const fileSizeGB = file.size / (1024 * 1024 * 1024);
+    const fileSizeMB = file.size / (1024 * 1024);
+
+    // Advertencia para archivos grandes
+    if (fileSizeGB > 2) {
+      console.warn('[FileSelect] Archivo grande:', fileSizeGB.toFixed(2), 'GB');
+      this.videoFormError = `⚠️ Archivo grande (${fileSizeGB.toFixed(1)} GB). La subida puede tardar varios minutos.`;
+    } else {
+      this.videoFormError = '';
+    }
+
+    this.selectedVideoFile = file;
+    this.showIOSHelp = false;
+
+    // Si no hay título, usar nombre del archivo
+    if (!this.videoForm.title) {
+      this.videoForm.title = file.name.replace(/\.[^/.]+$/, '');
+    }
+
+    console.log('[FileSelect] ✅ Archivo procesado exitosamente:', file.name, `(${fileSizeMB.toFixed(1)} MB)`);
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Abre el selector de archivos con manejo especial para iOS
+   */
+  openFileSelector(inputElement: HTMLInputElement): void {
+    console.log('[FileSelector] Abriendo selector, isIOS:', this.isIOS);
+
+    // Limpiar cualquier timeout anterior
+    if (this.fileSelectionTimeout) {
+      clearTimeout(this.fileSelectionTimeout);
+    }
+
+    // Resetear el input para permitir seleccionar el mismo archivo
+    inputElement.value = '';
+
+    if (this.isIOS) {
+      this.isProcessingFile = true;
+      this.processingFileMessage = 'Selecciona un video...';
+      this.videoFormError = '';
+      this.cdr.detectChanges();
+
+      // Timeout extendido para iOS - videos grandes tardan mucho en cargar
+      this.fileSelectionTimeout = setTimeout(() => {
+        console.log('[FileSelector] Timeout de selección alcanzado');
+        if (this.isProcessingFile && !this.selectedVideoFile) {
+          this.isProcessingFile = false;
+          this.processingFileMessage = '';
+          this.cdr.detectChanges();
+        }
+      }, 300000); // 5 minutos para seleccionar (videos muy grandes tardan mucho)
+    }
+
+    // Click en el input
+    inputElement.click();
+  }
+
+  /**
+   * Detecta cuando la app vuelve al foco (usuario volvió de la galería)
+   */
+  private setupVisibilityListener(): void {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && this.isProcessingFile) {
+        console.log('[Visibility] App visible de nuevo, esperando archivo...');
+        // Dar tiempo extra para que el archivo se procese en iOS
+        setTimeout(() => {
+          if (this.isProcessingFile && !this.selectedVideoFile) {
+            this.isProcessingFile = false;
+            this.processingFileMessage = '';
+            // Mostrar ayuda si el archivo no se cargó
+            this.showIOSHelp = true;
+            this.cdr.detectChanges();
+          }
+        }, 8000); // 8 segundos después de volver - iOS necesita tiempo para procesar
+      }
+    });
+
+    // También escuchar el evento focus para mayor compatibilidad
+    window.addEventListener('focus', () => {
+      if (this.isProcessingFile) {
+        console.log('[Focus] Ventana en foco de nuevo');
+        setTimeout(() => {
+          if (this.isProcessingFile && !this.selectedVideoFile) {
+            this.isProcessingFile = false;
+            this.processingFileMessage = '';
+            this.showIOSHelp = true;
+            this.cdr.detectChanges();
+          }
+        }, 8000);
+      }
+    });
+  }
+
+  /**
+   * Cierra el mensaje de ayuda de iOS
+   */
+  closeIOSHelp(): void {
+    this.showIOSHelp = false;
+    this.cdr.detectChanges();
   }
 
   /**
