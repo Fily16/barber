@@ -590,10 +590,10 @@ export class AdminComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Validar tamaño (max 2GB)
-      const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
+      // Validar tamaño (max 15GB)
+      const maxSize = 15 * 1024 * 1024 * 1024; // 15GB
       if (file.size > maxSize) {
-        this.videoFormError = 'El archivo es muy grande. Máximo 2GB.';
+        this.videoFormError = 'El archivo es muy grande. Máximo 15GB.';
         this.selectedVideoFile = null;
         this.cdr.detectChanges();
         return;

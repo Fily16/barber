@@ -237,11 +237,11 @@ export class CursoComponent implements OnInit, OnDestroy {
   }
 
   getBunnyThumbnail(videoId: string): string {
-    return `https://vz-f4a7b1e7-be3.b-cdn.net/${videoId}/thumbnail.jpg`;
+    return `https://vz-e7443a92-10a.b-cdn.net/${videoId}/thumbnail.jpg`;
   }
 
   getBunnyEmbedUrl(videoId: string): string {
-    return `https://iframe.mediadelivery.net/embed/405653/${videoId}?autoplay=false&preload=true`;
+    return `https://iframe.mediadelivery.net/embed/590927/${videoId}?autoplay=false&preload=true`;
   }
 
   playVideo(video: Video): void {
@@ -263,7 +263,7 @@ export class CursoComponent implements OnInit, OnDestroy {
       'preload': 'true',
       'responsive': 'true'
     });
-    return `https://iframe.mediadelivery.net/embed/405653/${videoUrl}?${params.toString()}`;
+    return `https://iframe.mediadelivery.net/embed/590927/${videoUrl}?${params.toString()}`;
   }
 
   getTotalVideos(): number {
