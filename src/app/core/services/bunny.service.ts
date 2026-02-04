@@ -214,4 +214,19 @@ export class BunnyService {
       message: ''
     });
   }
+
+  /**
+   * Sube un thumbnail personalizado para un video
+   * @param videoId ID del video en Bunny
+   * @param file Archivo de imagen (JPG, PNG, WebP)
+   */
+  uploadThumbnail(videoId: string, file: File): Observable<ApiResponse<string>> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<ApiResponse<string>>(
+      `${this.API_URL}/videos/${videoId}/thumbnail`,
+      formData
+    );
+  }
 }

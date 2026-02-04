@@ -850,13 +850,54 @@ export class AdminComponent implements OnInit, OnDestroy {
    * Guarda el video en el backend después de subirlo a Bunny
    */
   private saveVideoToBackend(uploadData: BunnyUploadUrlResponse): void {
+    // Si hay thumbnail personalizado, subirlo primero
+    if (this.selectedThumbnailFile) {
+      this.uploadProgress = {
+        state: 'processing',
+        progress: 100,
+        message: 'Subiendo thumbnail personalizado...'
+      };
+      this.cdr.detectChanges();
+
+      this.bunnyService.uploadThumbnail(uploadData.videoId, this.selectedThumbnailFile)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            console.log('Thumbnail uploaded:', response);
+            // Usar la URL del thumbnail personalizado
+            const thumbnailUrl = response.data || uploadData.thumbnailUrl;
+            this.finishSavingVideo(uploadData, thumbnailUrl);
+          },
+          error: (error) => {
+            console.warn('Error uploading thumbnail, using default:', error);
+            // Si falla el thumbnail, continuar con el default
+            this.finishSavingVideo(uploadData, uploadData.thumbnailUrl);
+          }
+        });
+    } else {
+      // Sin thumbnail personalizado, usar el default de Bunny
+      this.finishSavingVideo(uploadData, uploadData.thumbnailUrl);
+    }
+  }
+
+  /**
+   * Finaliza guardando el video en el backend
+   */
+  private finishSavingVideo(uploadData: BunnyUploadUrlResponse, thumbnailUrl: string): void {
+    this.uploadProgress = {
+      state: 'processing',
+      progress: 100,
+      message: 'Guardando en base de datos...'
+    };
+    this.cdr.detectChanges();
+
     // Preparar datos para el backend
     const videoData: CreateVideoRequest = {
       courseId: this.videoForm.courseId,
       title: this.videoForm.title,
       description: this.videoForm.description,
       videoUrl: uploadData.videoId, // Guardamos el videoId de Bunny
-      thumbnailUrl: uploadData.thumbnailUrl,
+      thumbnailUrl: thumbnailUrl,
       duration: this.videoForm.duration,
       type: this.videoForm.type,
       orderIndex: this.videoForm.orderIndex
@@ -937,6 +978,40 @@ export class AdminComponent implements OnInit, OnDestroy {
    * Realiza la actualización del video en el backend
    */
   private performVideoUpdate(): void {
+    if (!this.editingVideo) return;
+
+    // Si hay nuevo thumbnail, subirlo primero
+    if (this.selectedThumbnailFile) {
+      this.uploadProgress = {
+        state: 'processing',
+        progress: 100,
+        message: 'Subiendo thumbnail personalizado...'
+      };
+      this.cdr.detectChanges();
+
+      this.bunnyService.uploadThumbnail(this.videoForm.videoUrl, this.selectedThumbnailFile)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            console.log('Thumbnail updated:', response);
+            this.videoForm.thumbnailUrl = response.data || this.videoForm.thumbnailUrl;
+            this.finishVideoUpdate();
+          },
+          error: (error) => {
+            console.warn('Error uploading thumbnail:', error);
+            // Continuar con el thumbnail existente
+            this.finishVideoUpdate();
+          }
+        });
+    } else {
+      this.finishVideoUpdate();
+    }
+  }
+
+  /**
+   * Finaliza la actualización del video
+   */
+  private finishVideoUpdate(): void {
     if (!this.editingVideo) return;
 
     const videoData: CreateVideoRequest = {
