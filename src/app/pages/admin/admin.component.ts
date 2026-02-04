@@ -865,7 +865,7 @@ export class AdminComponent implements OnInit, OnDestroy {
           next: (response) => {
             console.log('Thumbnail uploaded:', response);
             // Usar la URL del thumbnail personalizado
-            const thumbnailUrl = response.data || uploadData.thumbnailUrl;
+            const thumbnailUrl = response.thumbnailUrl || uploadData.thumbnailUrl;
             this.finishSavingVideo(uploadData, thumbnailUrl);
           },
           error: (error) => {
@@ -994,7 +994,7 @@ export class AdminComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (response) => {
             console.log('Thumbnail updated:', response);
-            this.videoForm.thumbnailUrl = response.data || this.videoForm.thumbnailUrl;
+            this.videoForm.thumbnailUrl = response.thumbnailUrl || this.videoForm.thumbnailUrl;
             this.finishVideoUpdate();
           },
           error: (error) => {

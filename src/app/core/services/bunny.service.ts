@@ -219,12 +219,13 @@ export class BunnyService {
    * Sube un thumbnail personalizado para un video
    * @param videoId ID del video en Bunny
    * @param file Archivo de imagen (JPG, PNG, WebP)
+   * @returns Observable con objeto que contiene thumbnailUrl
    */
-  uploadThumbnail(videoId: string, file: File): Observable<ApiResponse<string>> {
+  uploadThumbnail(videoId: string, file: File): Observable<{ thumbnailUrl: string }> {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post<ApiResponse<string>>(
+    return this.http.post<{ thumbnailUrl: string }>(
       `${this.API_URL}/videos/${videoId}/thumbnail`,
       formData
     );
