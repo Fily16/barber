@@ -850,34 +850,9 @@ export class AdminComponent implements OnInit, OnDestroy {
    * Guarda el video en el backend después de subirlo a Bunny
    */
   private saveVideoToBackend(uploadData: BunnyUploadUrlResponse): void {
-    // Si hay thumbnail personalizado, subirlo primero
-    if (this.selectedThumbnailFile) {
-      this.uploadProgress = {
-        state: 'processing',
-        progress: 100,
-        message: 'Subiendo thumbnail personalizado...'
-      };
-      this.cdr.detectChanges();
-
-      this.bunnyService.uploadThumbnail(uploadData.videoId, this.selectedThumbnailFile)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            console.log('Thumbnail uploaded:', response);
-            // Usar la URL del thumbnail personalizado
-            const thumbnailUrl = response.thumbnailUrl || uploadData.thumbnailUrl;
-            this.finishSavingVideo(uploadData, thumbnailUrl);
-          },
-          error: (error) => {
-            console.warn('Error uploading thumbnail, using default:', error);
-            // Si falla el thumbnail, continuar con el default
-            this.finishSavingVideo(uploadData, uploadData.thumbnailUrl);
-          }
-        });
-    } else {
-      // Sin thumbnail personalizado, usar el default de Bunny
-      this.finishSavingVideo(uploadData, uploadData.thumbnailUrl);
-    }
+    // Usar el thumbnail preview (base64) si existe, sino usar el default de Bunny
+    const thumbnailUrl = this.thumbnailPreview || uploadData.thumbnailUrl;
+    this.finishSavingVideo(uploadData, thumbnailUrl);
   }
 
   /**
@@ -980,32 +955,12 @@ export class AdminComponent implements OnInit, OnDestroy {
   private performVideoUpdate(): void {
     if (!this.editingVideo) return;
 
-    // Si hay nuevo thumbnail, subirlo primero
-    if (this.selectedThumbnailFile) {
-      this.uploadProgress = {
-        state: 'processing',
-        progress: 100,
-        message: 'Subiendo thumbnail personalizado...'
-      };
-      this.cdr.detectChanges();
-
-      this.bunnyService.uploadThumbnail(this.videoForm.videoUrl, this.selectedThumbnailFile)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            console.log('Thumbnail updated:', response);
-            this.videoForm.thumbnailUrl = response.thumbnailUrl || this.videoForm.thumbnailUrl;
-            this.finishVideoUpdate();
-          },
-          error: (error) => {
-            console.warn('Error uploading thumbnail:', error);
-            // Continuar con el thumbnail existente
-            this.finishVideoUpdate();
-          }
-        });
-    } else {
-      this.finishVideoUpdate();
+    // Si hay nuevo thumbnail (preview), usarlo
+    if (this.thumbnailPreview && this.selectedThumbnailFile) {
+      this.videoForm.thumbnailUrl = this.thumbnailPreview;
     }
+
+    this.finishVideoUpdate();
   }
 
   /**
