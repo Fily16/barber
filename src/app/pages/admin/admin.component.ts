@@ -61,6 +61,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     durationMonths: 3
   };
   assignFormError = '';
+  durationType: 'months' | 'days' = 'months'; // Tipo de duración: meses o días
+  durationDays: number = 7; // Días de duración por defecto
 
   // Modal de cambio de contraseña
   showPasswordModal = false;
@@ -471,6 +473,8 @@ export class AdminComponent implements OnInit, OnDestroy {
       planType: 'UNLIMITED',
       durationMonths: 3
     };
+    this.durationType = 'months';
+    this.durationDays = 7;
     this.assignFormError = '';
     this.showAssignModal = true;
     this.cdr.detectChanges();
@@ -489,10 +493,26 @@ export class AdminComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Preparar el request según el tipo de duración
+    const request: AssignCourseRequest = {
+      userId: this.assignForm.userId,
+      courseId: this.assignForm.courseId,
+      planType: this.assignForm.planType
+    };
+
+    // Si es temporal, agregar la duración correspondiente
+    if (this.assignForm.planType === 'TEMPORAL') {
+      if (this.durationType === 'days') {
+        request.durationDays = this.durationDays;
+      } else {
+        request.durationMonths = this.assignForm.durationMonths;
+      }
+    }
+
     this.startLoading('Asignando curso...');
     this.assignFormError = '';
 
-    this.adminService.assignCourse(this.assignForm)
+    this.adminService.assignCourse(request)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {

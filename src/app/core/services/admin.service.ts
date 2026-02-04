@@ -30,6 +30,7 @@ export interface AssignCourseRequest {
   courseId: number;
   planType: 'UNLIMITED' | 'TEMPORAL';
   durationMonths?: number;
+  durationDays?: number;
 }
 
 export interface CreateVideoRequest {

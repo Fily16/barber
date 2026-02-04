@@ -877,6 +877,55 @@
   margin-top: var(--space-xs);
 }
 
+/* ==================== DURATION TYPE SELECTOR ==================== */
+.duration-options {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.duration-type-selector {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.duration-type-btn {
+  flex: 1;
+  padding: var(--space-md);
+  min-height: var(--touch-target);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.duration-type-btn:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.duration-type-btn.active {
+  background: rgba(201, 162, 39, 0.15);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+@media (min-width: 1024px) {
+  .duration-type-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--color-border-hover);
+  }
+
+  .duration-type-btn.active:hover {
+    background: rgba(201, 162, 39, 0.2);
+  }
+}
+
 .form-row {
   display: flex;
   flex-direction: column;
