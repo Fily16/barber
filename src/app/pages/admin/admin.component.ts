@@ -7,7 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { AdminService, UserResponse, CreateUserRequest, AssignCourseRequest, CreateVideoRequest, DashboardStats, ExtendAccessRequest } from '../../core/services/admin.service';
 import { BunnyService, UploadProgress } from '../../core/services/bunny.service';
 import { CourseResponse, UserCourseResponse, VideoResponse } from '../../core/models';
-import { BunnyUploadUrlResponse } from '../../core/models/bunny.model';
+import { BunnyUploadUrlResponse, BunnyStorageStats } from '../../core/models/bunny.model';
 
 @Component({
   selector: 'app-admin',
@@ -119,6 +119,10 @@ export class AdminComponent implements OnInit, OnDestroy {
   isUploading = false;
   bunnyUploadData: BunnyUploadUrlResponse | null = null;
 
+  // ==================== BUNNY STORAGE STATS ====================
+  storageStats: BunnyStorageStats | null = null;
+  storageLoading = false;
+
   // Estado para iOS
   isIOS = false;
 
@@ -206,13 +210,48 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   switchView(view: 'students' | 'videos' | 'dashboard'): void {
     this.currentView = view;
-    if (view === 'videos' && this.courses.length > 0 && !this.selectedCourseForVideos) {
-      this.selectedCourseForVideos = this.courses[0];
+    if (view === 'videos') {
+      if (this.courses.length > 0 && !this.selectedCourseForVideos) {
+        this.selectedCourseForVideos = this.courses[0];
+      }
+      // Cargar stats de almacenamiento de Bunny
+      if (!this.storageStats) {
+        this.loadStorageStats();
+      }
     }
     if (view === 'dashboard' && !this.dashboardStats) {
       this.loadDashboard();
     }
     this.cdr.detectChanges();
+  }
+
+  /**
+   * Carga las estadísticas de almacenamiento de Bunny
+   */
+  loadStorageStats(): void {
+    this.storageLoading = true;
+    this.bunnyService.getStorageStats()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (stats) => {
+          this.storageStats = stats;
+          this.storageLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading storage stats:', error);
+          this.storageLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Refresca las estadísticas de almacenamiento
+   */
+  refreshStorageStats(): void {
+    this.storageStats = null;
+    this.loadStorageStats();
   }
 
   selectCourseForVideos(course: CourseResponse): void {

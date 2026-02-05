@@ -7,7 +7,8 @@ import {
   BunnyVideoResponse,
   BunnyVideoListResponse,
   BunnyUploadUrlResponse,
-  BunnyVideoUrls
+  BunnyVideoUrls,
+  BunnyStorageStats
 } from '../models/bunny.model';
 import * as tus from 'tus-js-client';
 
@@ -229,5 +230,13 @@ export class BunnyService {
       `${this.API_URL}/videos/${videoId}/thumbnail`,
       formData
     );
+  }
+
+  /**
+   * Obtiene las estadísticas de almacenamiento de Bunny Stream
+   * Usa la Account API Key para obtener datos de la biblioteca
+   */
+  getStorageStats(): Observable<BunnyStorageStats> {
+    return this.http.get<BunnyStorageStats>(`${this.API_URL}/storage`);
   }
 }

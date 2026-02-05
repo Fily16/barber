@@ -64,6 +64,17 @@ export function isBunnyVideoReady(status: number): boolean {
   return status === 4;
 }
 
+// Estadísticas de almacenamiento
+export interface BunnyStorageStats {
+  libraryId: string;
+  libraryName: string;
+  storageUsedBytes: number;
+  storageUsedFormatted: string;
+  trafficUsedBytes: number;
+  trafficUsedFormatted: string;
+  videoCount: number;
+}
+
 // Helper para formatear duración de segundos a MM:SS o HH:MM:SS
 export function formatBunnyDuration(seconds: number): string {
   if (!seconds || seconds === 0) return '00:00';

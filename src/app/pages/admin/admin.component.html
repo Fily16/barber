@@ -206,6 +206,51 @@
         <p>Sube videos directamente desde aquí - Se almacenan en Bunny Stream</p>
       </header>
 
+      <!-- Storage Stats Card -->
+      <div class="storage-stats-card" *ngIf="!storageLoading && storageStats">
+        <div class="storage-header">
+          <div class="storage-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            </svg>
+          </div>
+          <div class="storage-title">
+            <h4>Bunny Stream Storage</h4>
+            <span class="storage-library">{{ storageStats.libraryName || 'Tu biblioteca' }}</span>
+          </div>
+          <button class="refresh-storage-btn" (click)="refreshStorageStats()" title="Actualizar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="storage-metrics">
+          <div class="storage-metric">
+            <span class="metric-value">{{ storageStats.storageUsedFormatted }}</span>
+            <span class="metric-label">Almacenamiento</span>
+          </div>
+          <div class="storage-metric">
+            <span class="metric-value">{{ storageStats.videoCount }}</span>
+            <span class="metric-label">Videos</span>
+          </div>
+          <div class="storage-metric">
+            <span class="metric-value">{{ storageStats.trafficUsedFormatted }}</span>
+            <span class="metric-label">Tráfico usado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Storage Loading -->
+      <div class="storage-stats-card loading" *ngIf="storageLoading">
+        <div class="storage-loading">
+          <div class="spinner-small"></div>
+          <span>Cargando almacenamiento...</span>
+        </div>
+      </div>
+
       <!-- Selector de curso -->
       <div class="course-selector">
         <label>Seleccionar curso:</label>
