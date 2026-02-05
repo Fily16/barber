@@ -80,6 +80,14 @@
         </svg>
         VIDEOS
       </button>
+      <button class="tab-btn" [class.active]="currentView === 'dashboard'" (click)="switchView('dashboard')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="20" x2="12" y2="10"></line>
+          <line x1="18" y1="20" x2="18" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="16"></line>
+        </svg>
+        GANANCIAS
+      </button>
     </div>
 
     <!-- ============== VISTA: ESTUDIANTES ============== -->
@@ -134,6 +142,7 @@
                         [class.active]="uc.accessValid">
                     {{ uc.courseTitle }}
                     <span class="plan-type">{{ uc.planType === 'UNLIMITED' ? '∞' : uc.expiresAt ? (formatDate(uc.expiresAt)) : '' }}</span>
+                    <button class="extend-btn" *ngIf="uc.active && uc.planType === 'TEMPORAL'" (click)="openExtendModal(uc)" title="Renovar acceso">🔄</button>
                     <button class="revoke-btn" *ngIf="uc.active" (click)="revokeAccess(uc)" title="Revocar acceso">×</button>
                   </span>
                   <span class="no-courses" *ngIf="student.courses.length === 0">Sin cursos</span>
@@ -285,6 +294,199 @@
         <span>Primero crea un curso en la base de datos</span>
       </div>
     </div>
+
+    <!-- ============== VISTA: DASHBOARD DE GANANCIAS ============== -->
+    <div class="view-content" *ngIf="currentView === 'dashboard'">
+      <!-- Header -->
+      <header class="admin-header">
+        <h1>💰 Dashboard de Ganancias</h1>
+        <p>{{ dashboardStats?.monthName }} {{ dashboardStats?.currentYear }} - Tipo de cambio: 1 USD = {{ dashboardStats?.exchangeRateUsdToPen | number:'1.2-2' }} PEN</p>
+      </header>
+
+      <!-- Acciones -->
+      <div class="admin-actions">
+        <button class="btn-primary" (click)="refreshDashboard()" [disabled]="dashboardLoading">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          {{ dashboardLoading ? 'CARGANDO...' : 'ACTUALIZAR' }}
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-container" *ngIf="dashboardLoading">
+        <div class="spinner"></div>
+        <p class="loading-message">Cargando estadísticas...</p>
+      </div>
+
+      <!-- Error -->
+      <div class="dashboard-error" *ngIf="dashboardError && !dashboardLoading">
+        <p>{{ dashboardError }}</p>
+        <button class="btn-secondary" (click)="refreshDashboard()">Reintentar</button>
+      </div>
+
+      <!-- Dashboard Content -->
+      <div class="dashboard-content" *ngIf="dashboardStats && !dashboardLoading">
+
+        <!-- Tarjetas principales -->
+        <div class="dashboard-grid">
+
+          <!-- Ventas del mes -->
+          <div class="dashboard-card sales-card">
+            <div class="card-icon sales">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <div class="card-content">
+              <span class="card-label">Ventas del Mes</span>
+              <span class="card-value">{{ formatCurrency(dashboardStats.totalSalesThisMonth) }}</span>
+              <span class="card-subtitle">{{ dashboardStats.totalPaymentsThisMonth }} pagos registrados</span>
+            </div>
+          </div>
+
+          <!-- Costos Bunny -->
+          <div class="dashboard-card bunny-card">
+            <div class="card-icon bunny">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              </svg>
+            </div>
+            <div class="card-content">
+              <span class="card-label">Costos Bunny Stream</span>
+              <span class="card-value negative">-{{ formatCurrency(dashboardStats.bunnyCosts.totalCostPen) }}</span>
+              <span class="card-subtitle">{{ dashboardStats.bunnyCosts.videoCount }} videos • {{ dashboardStats.bunnyCosts.storageUsedGb | number:'1.2-2' }} GB</span>
+            </div>
+          </div>
+
+          <!-- Ganancia Neta -->
+          <div class="dashboard-card profit-card">
+            <div class="card-icon profit">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+              </svg>
+            </div>
+            <div class="card-content">
+              <span class="card-label">Ganancia Neta</span>
+              <span class="card-value" [class.positive]="dashboardStats.netProfitThisMonth > 0">{{ formatCurrency(dashboardStats.netProfitThisMonth) }}</span>
+              <span class="card-subtitle" [class.warning]="!dashboardStats.isBunnyCostCovered">
+                {{ dashboardStats.isBunnyCostCovered ? '✓ Costos cubiertos' : '⚠️ Costos no cubiertos' }}
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Distribución de ganancias -->
+        <div class="distribution-section">
+          <h3>📊 Distribución de Ganancias</h3>
+
+          <div class="distribution-grid">
+            <!-- Tu parte (Desarrollador) -->
+            <div class="distribution-card developer">
+              <div class="distribution-header">
+                <span class="distribution-icon">👨‍💻</span>
+                <span class="distribution-name">Tu Comisión</span>
+                <span class="distribution-percent">{{ dashboardStats.developerPercentage }}%</span>
+              </div>
+              <div class="distribution-amount">{{ formatCurrency(dashboardStats.developerShare) }}</div>
+              <div class="distribution-bar">
+                <div class="distribution-fill developer" [style.width.%]="dashboardStats.developerPercentage"></div>
+              </div>
+            </div>
+
+            <!-- Parte del barbero -->
+            <div class="distribution-card barber">
+              <div class="distribution-header">
+                <span class="distribution-icon">💈</span>
+                <span class="distribution-name">Ralph</span>
+                <span class="distribution-percent">{{ dashboardStats.barberPercentage }}%</span>
+              </div>
+              <div class="distribution-amount">{{ formatCurrency(dashboardStats.barberShare) }}</div>
+              <div class="distribution-bar">
+                <div class="distribution-fill barber" [style.width.%]="dashboardStats.barberPercentage"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalles de costos Bunny -->
+        <div class="bunny-details-section">
+          <h3>🐰 Detalles Bunny Stream</h3>
+          <div class="bunny-details-grid">
+            <div class="bunny-detail">
+              <span class="detail-label">Almacenamiento</span>
+              <span class="detail-value">{{ dashboardStats.bunnyCosts.storageUsedGb | number:'1.2-2' }} GB</span>
+              <span class="detail-cost">{{ formatCurrencyUsd(dashboardStats.bunnyCosts.storageCostUsd) }}/mes</span>
+            </div>
+            <div class="bunny-detail">
+              <span class="detail-label">Bandwidth (estimado)</span>
+              <span class="detail-value">~{{ dashboardStats.bunnyCosts.videoCount * 2 }} GB</span>
+              <span class="detail-cost">{{ formatCurrencyUsd(dashboardStats.bunnyCosts.estimatedBandwidthCostUsd) }}/mes</span>
+            </div>
+            <div class="bunny-detail">
+              <span class="detail-label">Total USD</span>
+              <span class="detail-value highlight">{{ formatCurrencyUsd(dashboardStats.bunnyCosts.totalCostUsd) }}</span>
+              <span class="detail-cost">Mínimo: {{ formatCurrencyUsd(dashboardStats.bunnyCosts.minimumMonthlyUsd) }}/mes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen de actividad -->
+        <div class="activity-section">
+          <h3>📈 Actividad del Mes</h3>
+          <div class="activity-grid">
+            <div class="activity-item">
+              <span class="activity-number">{{ dashboardStats.newSubscriptionsThisMonth }}</span>
+              <span class="activity-label">Nuevas Suscripciones</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-number">{{ dashboardStats.renewalsThisMonth }}</span>
+              <span class="activity-label">Renovaciones</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-number">{{ formatCurrency(dashboardStats.totalSalesAllTime) }}</span>
+              <span class="activity-label">Total Histórico</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagos recientes -->
+        <div class="recent-payments-section" *ngIf="dashboardStats.recentPayments && dashboardStats.recentPayments.length > 0">
+          <h3>🧾 Pagos Recientes</h3>
+          <div class="payments-list">
+            <div class="payment-item" *ngFor="let payment of dashboardStats.recentPayments">
+              <div class="payment-info">
+                <span class="payment-student">{{ payment.studentName }}</span>
+                <span class="payment-course">{{ payment.courseName }}</span>
+                <span class="payment-type" [class.new]="payment.paymentType === 'Nueva suscripción'" [class.renewal]="payment.paymentType === 'Renovación'">
+                  {{ payment.paymentType }}
+                </span>
+              </div>
+              <div class="payment-details">
+                <span class="payment-amount">{{ formatCurrency(payment.amountInPen) }}</span>
+                <span class="payment-original" *ngIf="payment.currency !== 'PEN'">({{ payment.currency }} {{ payment.amount }})</span>
+                <span class="payment-date">{{ formatDate(payment.paymentDate) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin pagos -->
+        <div class="empty-payments" *ngIf="!dashboardStats.recentPayments || dashboardStats.recentPayments.length === 0">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+          <p>No hay pagos registrados</p>
+          <span>Los pagos aparecerán aquí cuando asignes cursos con monto</span>
+        </div>
+
+      </div>
+    </div>
   </div>
 </div>
 
@@ -382,6 +584,25 @@
           <label>Duración (meses) *</label>
           <input type="number" [(ngModel)]="assignForm.durationMonths" name="durationMonths" min="1" max="24" />
           <span class="form-hint">Mínimo 1 mes, máximo 24 meses</span>
+        </div>
+      </div>
+
+      <!-- Sección de pago -->
+      <div class="payment-section">
+        <h4 class="section-title">💰 Registro de Pago</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Monto Cobrado</label>
+            <input type="number" [(ngModel)]="paymentAmount" name="paymentAmount" min="0" step="0.01" placeholder="0.00" />
+            <span class="form-hint">Dejar en 0 si es gratis</span>
+          </div>
+          <div class="form-group form-group-sm">
+            <label>Moneda</label>
+            <select [(ngModel)]="paymentCurrency" name="paymentCurrency">
+              <option value="PEN">S/. Soles</option>
+              <option value="USD">$ Dólares</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -617,5 +838,147 @@
         {{ isLoading ? 'Cerrando...' : 'Cerrar y Continuar' }}
       </button>
     </div>
+  </div>
+</div>
+
+<!-- ============== MODAL: EXTENDER/RENOVAR ACCESO ============== -->
+<div class="modal-overlay" *ngIf="showExtendModal" (click)="closeExtendModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🔄 Renovar Acceso</h3>
+      <button class="close-btn" (click)="closeExtendModal()">×</button>
+    </div>
+    <p class="modal-subtitle">Curso: <strong>{{ extendingUserCourse?.courseTitle }}</strong></p>
+    <form (ngSubmit)="extendAccessWithPayment()">
+
+      <!-- Tipo de duración -->
+      <div class="form-group">
+        <label>Tipo de Duración *</label>
+        <div class="duration-type-selector">
+          <button type="button"
+                  class="duration-type-btn"
+                  [class.active]="extendDurationType === 'days'"
+                  (click)="extendDurationType = 'days'">
+            📅 Días
+          </button>
+          <button type="button"
+                  class="duration-type-btn"
+                  [class.active]="extendDurationType === 'months'"
+                  (click)="extendDurationType = 'months'">
+            🗓️ Meses
+          </button>
+        </div>
+      </div>
+
+      <!-- Input para días -->
+      <div class="form-group" *ngIf="extendDurationType === 'days'">
+        <label>Duración (días) *</label>
+        <input type="number" [(ngModel)]="extendForm.durationDays" name="extendDurationDays" min="1" max="365" placeholder="Ej: 7, 15, 30" />
+      </div>
+
+      <!-- Input para meses -->
+      <div class="form-group" *ngIf="extendDurationType === 'months'">
+        <label>Duración (meses) *</label>
+        <input type="number" [(ngModel)]="extendForm.durationMonths" name="extendDurationMonths" min="1" max="24" />
+      </div>
+
+      <!-- Sección de pago -->
+      <div class="payment-section">
+        <h4 class="section-title">💰 Registro de Pago</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Monto Cobrado</label>
+            <input type="number" [(ngModel)]="extendForm.amount" name="extendAmount" min="0" step="0.01" placeholder="0.00" />
+            <span class="form-hint">Dejar en 0 si es gratis</span>
+          </div>
+          <div class="form-group form-group-sm">
+            <label>Moneda</label>
+            <select [(ngModel)]="extendForm.currency" name="extendCurrency">
+              <option value="PEN">S/. Soles</option>
+              <option value="USD">$ Dólares</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-error" *ngIf="extendFormError">{{ extendFormError }}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="closeExtendModal()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Procesando...' : 'Renovar Acceso' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============== MODAL: EXTENDER ACCESO CON PAGO ============== -->
+<div class="modal-overlay" *ngIf="showExtendModal" (click)="closeExtendModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🔄 Renovar Acceso</h3>
+      <button class="close-btn" (click)="closeExtendModal()">×</button>
+    </div>
+    <p class="modal-subtitle">Curso: <strong>{{ extendingUserCourse?.courseTitle }}</strong></p>
+    <form (ngSubmit)="extendAccessWithPayment()">
+
+      <!-- Tipo de duración -->
+      <div class="form-group">
+        <label>Tipo de Duración *</label>
+        <div class="duration-type-selector">
+          <button type="button"
+                  class="duration-type-btn"
+                  [class.active]="extendDurationType === 'days'"
+                  (click)="extendDurationType = 'days'">
+            📅 Días
+          </button>
+          <button type="button"
+                  class="duration-type-btn"
+                  [class.active]="extendDurationType === 'months'"
+                  (click)="extendDurationType = 'months'">
+            🗓️ Meses
+          </button>
+        </div>
+      </div>
+
+      <!-- Input para días -->
+      <div class="form-group" *ngIf="extendDurationType === 'days'">
+        <label>Días a Extender *</label>
+        <input type="number" [(ngModel)]="extendForm.durationDays" name="extendDays" min="1" max="365" placeholder="Ej: 7, 15, 30" />
+      </div>
+
+      <!-- Input para meses -->
+      <div class="form-group" *ngIf="extendDurationType === 'months'">
+        <label>Meses a Extender *</label>
+        <input type="number" [(ngModel)]="extendForm.durationMonths" name="extendMonths" min="1" max="24" />
+      </div>
+
+      <!-- Sección de pago -->
+      <div class="payment-section">
+        <h4 class="section-title">💰 Registro de Pago</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Monto Cobrado</label>
+            <input type="number" [(ngModel)]="extendForm.amount" name="extendAmount" min="0" step="0.01" placeholder="0.00" />
+            <span class="form-hint">Dejar en 0 si es gratis</span>
+          </div>
+          <div class="form-group form-group-sm">
+            <label>Moneda</label>
+            <select [(ngModel)]="extendForm.currency" name="extendCurrency">
+              <option value="PEN">S/. Soles</option>
+              <option value="USD">$ Dólares</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-error" *ngIf="extendFormError">{{ extendFormError }}</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="closeExtendModal()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="isLoading">
+          {{ isLoading ? 'Procesando...' : 'Renovar Acceso' }}
+        </button>
+      </div>
+    </form>
   </div>
 </div>

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
-import { AdminService, UserResponse, CreateUserRequest, AssignCourseRequest, CreateVideoRequest } from '../../core/services/admin.service';
+import { AdminService, UserResponse, CreateUserRequest, AssignCourseRequest, CreateVideoRequest, DashboardStats, ExtendAccessRequest } from '../../core/services/admin.service';
 import { BunnyService, UploadProgress } from '../../core/services/bunny.service';
 import { CourseResponse, UserCourseResponse, VideoResponse } from '../../core/models';
 import { BunnyUploadUrlResponse } from '../../core/models/bunny.model';
@@ -20,7 +20,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   // Estados de vista
   isAuthenticated = false;
   isLoading = false;
-  currentView: 'students' | 'videos' = 'students';
+  currentView: 'students' | 'videos' | 'dashboard' = 'students';
 
   // Mensaje de servidor despertando
   serverWakingUp = false;
@@ -63,6 +63,27 @@ export class AdminComponent implements OnInit, OnDestroy {
   assignFormError = '';
   durationType: 'months' | 'days' = 'months'; // Tipo de duración: meses o días
   durationDays: number = 7; // Días de duración por defecto
+  // Campos de pago para asignación
+  paymentAmount: number = 0;
+  paymentCurrency: 'PEN' | 'USD' = 'PEN';
+
+  // Modal de extensión/renovación con pago
+  showExtendModal = false;
+  extendingUserCourse: UserCourseResponse | null = null;
+  extendForm: ExtendAccessRequest = {
+    userCourseId: 0,
+    durationDays: 7,
+    durationMonths: 1,
+    amount: 0,
+    currency: 'PEN'
+  };
+  extendDurationType: 'months' | 'days' = 'days';
+  extendFormError = '';
+
+  // ==================== DASHBOARD ====================
+  dashboardStats: DashboardStats | null = null;
+  dashboardLoading = false;
+  dashboardError = '';
 
   // Modal de cambio de contraseña
   showPasswordModal = false;
@@ -183,10 +204,13 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   // ==================== NAVEGACIÓN ====================
 
-  switchView(view: 'students' | 'videos'): void {
+  switchView(view: 'students' | 'videos' | 'dashboard'): void {
     this.currentView = view;
     if (view === 'videos' && this.courses.length > 0 && !this.selectedCourseForVideos) {
       this.selectedCourseForVideos = this.courses[0];
+    }
+    if (view === 'dashboard' && !this.dashboardStats) {
+      this.loadDashboard();
     }
     this.cdr.detectChanges();
   }
@@ -475,6 +499,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     };
     this.durationType = 'months';
     this.durationDays = 7;
+    this.paymentAmount = 0;
+    this.paymentCurrency = 'PEN';
     this.assignFormError = '';
     this.showAssignModal = true;
     this.cdr.detectChanges();
@@ -509,6 +535,12 @@ export class AdminComponent implements OnInit, OnDestroy {
       }
     }
 
+    // Agregar datos de pago si hay monto
+    if (this.paymentAmount > 0) {
+      request.amount = this.paymentAmount;
+      request.currency = this.paymentCurrency;
+    }
+
     this.startLoading('Asignando curso...');
     this.assignFormError = '';
 
@@ -519,6 +551,10 @@ export class AdminComponent implements OnInit, OnDestroy {
           this.showSuccess('Curso asignado exitosamente');
           this.closeAssignModal();
           this.loadData();
+          // Recargar dashboard si está visible
+          if (this.currentView === 'dashboard') {
+            this.loadDashboard();
+          }
         },
         error: (error) => {
           this.assignFormError = error.error?.message || 'Error al asignar curso';
@@ -543,6 +579,116 @@ export class AdminComponent implements OnInit, OnDestroy {
           }
         });
     }
+  }
+
+  // ==================== EXTENSIÓN/RENOVACIÓN CON PAGO ====================
+
+  openExtendModal(userCourse: UserCourseResponse): void {
+    this.extendingUserCourse = userCourse;
+    this.extendForm = {
+      userCourseId: userCourse.id,
+      durationDays: 7,
+      durationMonths: 1,
+      amount: 0,
+      currency: 'PEN'
+    };
+    this.extendDurationType = 'days';
+    this.extendFormError = '';
+    this.showExtendModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeExtendModal(): void {
+    this.showExtendModal = false;
+    this.extendingUserCourse = null;
+    this.cdr.detectChanges();
+  }
+
+  extendAccessWithPayment(): void {
+    if (!this.extendingUserCourse) return;
+
+    // Validar duración
+    if (this.extendDurationType === 'days' && (!this.extendForm.durationDays || this.extendForm.durationDays < 1)) {
+      this.extendFormError = 'Ingresa una cantidad de días válida';
+      this.cdr.detectChanges();
+      return;
+    }
+    if (this.extendDurationType === 'months' && (!this.extendForm.durationMonths || this.extendForm.durationMonths < 1)) {
+      this.extendFormError = 'Ingresa una cantidad de meses válida';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const request: ExtendAccessRequest = {
+      userCourseId: this.extendingUserCourse.id,
+      amount: this.extendForm.amount,
+      currency: this.extendForm.currency
+    };
+
+    if (this.extendDurationType === 'days') {
+      request.durationDays = this.extendForm.durationDays;
+    } else {
+      request.durationMonths = this.extendForm.durationMonths;
+    }
+
+    this.startLoading('Extendiendo acceso...');
+    this.extendFormError = '';
+
+    this.adminService.extendAccessWithPayment(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showSuccess('Acceso extendido y pago registrado');
+          this.closeExtendModal();
+          this.loadData();
+          // Recargar dashboard si está visible
+          if (this.currentView === 'dashboard') {
+            this.loadDashboard();
+          }
+        },
+        error: (error) => {
+          this.extendFormError = error.error?.message || 'Error al extender acceso';
+          this.stopLoading();
+        }
+      });
+  }
+
+  // ==================== DASHBOARD ====================
+
+  loadDashboard(): void {
+    this.dashboardLoading = true;
+    this.dashboardError = '';
+    this.cdr.detectChanges();
+
+    this.adminService.getDashboardStats()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (stats) => {
+          this.dashboardStats = stats;
+          this.dashboardLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading dashboard:', error);
+          this.dashboardError = 'Error al cargar el dashboard. Intenta de nuevo.';
+          this.dashboardLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  refreshDashboard(): void {
+    this.loadDashboard();
+  }
+
+  formatCurrency(value: number): string {
+    if (value === null || value === undefined) return 'S/. 0.00';
+    return 'S/. ' + value.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  formatCurrencyUsd(value: number): string {
+    if (value === null || value === undefined) return '$ 0.00';
+    return '$ ' + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   // ==================== GESTIÓN DE VIDEOS CON BUNNY ====================

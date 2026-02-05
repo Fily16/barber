@@ -31,6 +31,17 @@ export interface AssignCourseRequest {
   planType: 'UNLIMITED' | 'TEMPORAL';
   durationMonths?: number;
   durationDays?: number;
+  // Campos de pago
+  amount?: number;
+  currency?: 'PEN' | 'USD';
+}
+
+export interface ExtendAccessRequest {
+  userCourseId: number;
+  durationDays?: number;
+  durationMonths?: number;
+  amount?: number;
+  currency?: 'PEN' | 'USD';
 }
 
 export interface CreateVideoRequest {
@@ -42,6 +53,62 @@ export interface CreateVideoRequest {
   duration?: string;
   type: 'THEORY' | 'PRACTICE';
   orderIndex?: number;
+}
+
+// ==================== DASHBOARD INTERFACES ====================
+
+export interface DashboardStats {
+  totalSalesAllTime: number;
+  totalSalesThisMonth: number;
+  totalPaymentsThisMonth: number;
+  newSubscriptionsThisMonth: number;
+  renewalsThisMonth: number;
+  bunnyCosts: BunnyCostsInfo;
+  netProfitThisMonth: number;
+  developerShare: number;
+  barberShare: number;
+  developerPercentage: number;
+  barberPercentage: number;
+  isBunnyCostCovered: boolean;
+  remainingAfterBunny: number;
+  exchangeRateUsdToPen: number;
+  exchangeRateLastUpdate: string;
+  recentPayments: PaymentSummary[];
+  currentMonth: number;
+  currentYear: number;
+  monthName: string;
+}
+
+export interface BunnyCostsInfo {
+  storageUsedBytes: number;
+  storageUsedGb: number;
+  videoCount: number;
+  storageCostUsd: number;
+  storageCostPen: number;
+  estimatedBandwidthCostUsd: number;
+  estimatedBandwidthCostPen: number;
+  totalCostUsd: number;
+  totalCostPen: number;
+  minimumMonthlyUsd: number;
+  minimumMonthlyPen: number;
+}
+
+export interface PaymentSummary {
+  id: number;
+  studentName: string;
+  courseName: string;
+  amount: number;
+  currency: string;
+  amountInPen: number;
+  paymentType: string;
+  planDescription: string;
+  paymentDate: string;
+}
+
+export interface ExchangeRateInfo {
+  usdToPen: number;
+  lastUpdate: string;
+  source: string;
 }
 
 @Injectable({
@@ -123,7 +190,32 @@ export class AdminService {
     );
   }
 
+  extendAccessWithPayment(data: ExtendAccessRequest): Observable<ApiResponse<UserCourseResponse>> {
+    return this.http.post<ApiResponse<UserCourseResponse>>(
+      `${this.API_URL}/user-courses/extend-with-payment`,
+      data
+    );
+  }
+
   revokeAccess(userCourseId: number): Observable<ApiResponse<void>> {
     return this.http.patch<ApiResponse<void>>(`${this.API_URL}/user-courses/${userCourseId}/revoke`, {});
+  }
+
+  // ==================== DASHBOARD ====================
+
+  getDashboardStats(): Observable<DashboardStats> {
+    return this.http.get<DashboardStats>(`${this.API_URL}/dashboard/stats`);
+  }
+
+  getPaymentHistory(year?: number, month?: number): Observable<PaymentSummary[]> {
+    let url = `${this.API_URL}/dashboard/payments`;
+    if (year && month) {
+      url += `?year=${year}&month=${month}`;
+    }
+    return this.http.get<PaymentSummary[]>(url);
+  }
+
+  getExchangeRate(): Observable<ExchangeRateInfo> {
+    return this.http.get<ExchangeRateInfo>(`${this.API_URL}/dashboard/exchange-rate`);
   }
 }
