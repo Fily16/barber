@@ -6,6 +6,7 @@ import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { AdminService, UserResponse, CreateUserRequest, AssignCourseRequest, CreateVideoRequest, DashboardStats, ExtendAccessRequest } from '../../core/services/admin.service';
 import { BunnyService, UploadProgress } from '../../core/services/bunny.service';
+import { NotificationService, EmailConfig, NotificationSettings, WhatsAppLink, UserCourseExpiry, MassiveEmailResult } from '../../core/services/notification.service';
 import { CourseResponse, UserCourseResponse, VideoResponse } from '../../core/models';
 import { BunnyUploadUrlResponse, BunnyStorageStats } from '../../core/models/bunny.model';
 
@@ -20,7 +21,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   // Estados de vista
   isAuthenticated = false;
   isLoading = false;
-  currentView: 'students' | 'videos' | 'dashboard' = 'students';
+  currentView: 'students' | 'videos' | 'dashboard' | 'settings' = 'students';
 
   // Mensaje de servidor despertando
   serverWakingUp = false;
@@ -123,6 +124,76 @@ export class AdminComponent implements OnInit, OnDestroy {
   storageStats: BunnyStorageStats | null = null;
   storageLoading = false;
 
+  // ==================== NOTIFICACIONES ====================
+  // Configuración de email
+  emailConfig: EmailConfig = {
+    senderEmail: '',
+    senderName: 'Ralph Cuts Academy',
+    enabled: true,
+    logoUrl: '',
+    primaryColor: '#c9a227',
+    backgroundColor: '#0a0a0a',
+    textColor: '#ffffff',
+    buttonUrl: 'https://ralph-cuts-academy.vercel.app/curso',
+    welcomeSubject: 'Bienvenido a Ralph Cuts Academy',
+    welcomeTitle: '¡Bienvenido, {nombre}! 🎉',
+    welcomeMessage: 'Tu cuenta ha sido creada exitosamente. Ahora tienes acceso a los mejores cursos de barbería profesional.',
+    welcomeButtonText: 'INGRESAR A MI CURSO',
+    expiringSubject: 'Tu acceso está por vencer - Ralph Cuts Academy',
+    expiringTitle: '¡{nombre}, tu acceso vence pronto!',
+    expiringMessage: 'Tu acceso al curso {curso} vence en {dias} días. Renueva ahora para seguir aprendiendo.',
+    expiringButtonText: 'RENOVAR ACCESO',
+    expiredSubject: 'Tu acceso ha vencido - Ralph Cuts Academy',
+    expiredTitle: '{nombre}, tu acceso ha expirado',
+    expiredMessage: 'Tu acceso al curso {curso} ha vencido. Renueva para continuar con tu formación profesional.',
+    expiredButtonText: 'RENOVAR AHORA'
+  };
+  emailConfigLoading = false;
+  emailConfigError = '';
+  emailTestEmail = '';
+  emailTestSending = false;
+
+  // Configuración de notificaciones automáticas
+  notificationSettings: NotificationSettings = {
+    adminWhatsApp: '',
+    emailOnWelcome: true,
+    emailOnExpiringSoon: true,
+    emailDaysBeforeExpiry: 3,
+    emailOnExpired: true,
+    whatsappOnWelcome: false,
+    whatsappOnExpiringSoon: false,
+    whatsappDaysBeforeExpiry: 3,
+    whatsappOnExpired: false,
+    whatsappWelcomeTemplate: '¡Hola {nombre}! 👋\n\nBienvenido a *Ralph Cuts Academy*.\n\nTus credenciales:\n👤 Usuario: {usuario}\n🔑 Contraseña: {password}\n\n🔗 Ingresa aquí: {url}\n\n¡Éxitos en tu formación! 💈',
+    whatsappExpiringTemplate: '¡Hola {nombre}! ⚠️\n\nTu acceso al curso *{curso}* vence en *{dias} días*.\n\nRenueva ahora para seguir aprendiendo.\n\n🔗 {url}',
+    whatsappExpiredTemplate: '¡Hola {nombre}! 😢\n\nTu acceso al curso *{curso}* ha vencido.\n\nRenueva para continuar con tu formación profesional.\n\n🔗 {url}',
+    whatsappMassiveTemplate: '¡Hola {nombre}! 👋\n\n{mensaje}\n\n- Ralph Cuts Academy 💈'
+  };
+  settingsLoading = false;
+  settingsError = '';
+
+  // Envío masivo
+  massiveTab: 'email' | 'whatsapp' = 'email';
+  massiveSubject = '';
+  massiveMessage = '';
+  massiveSending = false;
+  massiveResult: MassiveEmailResult | null = null;
+  selectedUsersForMassive: number[] = [];
+  selectAllForMassive = false;
+
+  // WhatsApp links
+  whatsappLinks: WhatsAppLink[] = [];
+  whatsappLinksLoading = false;
+
+  // Cursos por vencer
+  expiringUsers: UserCourseExpiry[] = [];
+  expiredUsers: UserCourseExpiry[] = [];
+  expiryLoading = false;
+  expiryDaysFilter = 7;
+
+  // Tab activa en settings
+  settingsTab: 'email-config' | 'templates' | 'automation' | 'massive' | 'expiring' = 'email-config';
+
   // Estado para iOS
   isIOS = false;
 
@@ -135,6 +206,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private adminService: AdminService,
     private bunnyService: BunnyService,
+    private notificationService: NotificationService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -208,7 +280,7 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   // ==================== NAVEGACIÓN ====================
 
-  switchView(view: 'students' | 'videos' | 'dashboard'): void {
+  switchView(view: 'students' | 'videos' | 'dashboard' | 'settings'): void {
     this.currentView = view;
     if (view === 'videos') {
       if (this.courses.length > 0 && !this.selectedCourseForVideos) {
@@ -221,6 +293,9 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
     if (view === 'dashboard' && !this.dashboardStats) {
       this.loadDashboard();
+    }
+    if (view === 'settings') {
+      this.loadNotificationSettings();
     }
     this.cdr.detectChanges();
   }
@@ -1304,5 +1379,316 @@ export class AdminComponent implements OnInit, OnDestroy {
       month: '2-digit',
       year: 'numeric'
     });
+  }
+
+  // ==================== NOTIFICACIONES ====================
+
+  /**
+   * Carga la configuración de notificaciones
+   */
+  loadNotificationSettings(): void {
+    this.emailConfigLoading = true;
+    this.settingsLoading = true;
+
+    // Cargar config de email
+    this.notificationService.getEmailConfig()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (config) => {
+          if (config.configured) {
+            this.emailConfig = { ...this.emailConfig, ...config };
+          }
+          this.emailConfigLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading email config:', error);
+          this.emailConfigLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+
+    // Cargar settings de notificaciones
+    this.notificationService.getSettings()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (settings) => {
+          this.notificationSettings = { ...this.notificationSettings, ...settings };
+          this.settingsLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading notification settings:', error);
+          this.settingsLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Cambia la tab activa en settings
+   */
+  setSettingsTab(tab: 'email-config' | 'templates' | 'automation' | 'massive' | 'expiring'): void {
+    this.settingsTab = tab;
+
+    // Cargar datos específicos según la tab
+    if (tab === 'expiring') {
+      this.loadExpiringCourses();
+    }
+    if (tab === 'massive') {
+      this.massiveResult = null;
+      this.whatsappLinks = [];
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Guarda la configuración de email
+   */
+  saveEmailConfig(): void {
+    this.emailConfigLoading = true;
+    this.emailConfigError = '';
+
+    this.notificationService.saveEmailConfig(this.emailConfig)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showSuccess('Configuración de email guardada');
+          this.emailConfigLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          this.emailConfigError = error.error?.message || 'Error al guardar';
+          this.emailConfigLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Envía un correo de prueba
+   */
+  sendTestEmail(): void {
+    if (!this.emailTestEmail) {
+      this.emailConfigError = 'Ingresa un correo para la prueba';
+      return;
+    }
+
+    this.emailTestSending = true;
+    this.emailConfigError = '';
+
+    this.notificationService.sendTestEmail(this.emailTestEmail)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          if (result.success) {
+            this.showSuccess('Correo de prueba enviado a ' + this.emailTestEmail);
+          } else {
+            this.emailConfigError = 'Error al enviar correo de prueba';
+          }
+          this.emailTestSending = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          this.emailConfigError = error.error?.message || 'Error al enviar correo';
+          this.emailTestSending = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Guarda la configuración de notificaciones automáticas
+   */
+  saveNotificationSettings(): void {
+    this.settingsLoading = true;
+    this.settingsError = '';
+
+    this.notificationService.saveSettings(this.notificationSettings)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showSuccess('Configuración guardada');
+          this.settingsLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          this.settingsError = error.error?.message || 'Error al guardar';
+          this.settingsLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Envía correos masivos
+   */
+  sendMassiveEmail(): void {
+    if (!this.massiveSubject || !this.massiveMessage) {
+      this.showSuccess('Completa el asunto y mensaje');
+      return;
+    }
+
+    this.massiveSending = true;
+    this.massiveResult = null;
+
+    const request = {
+      userIds: this.selectedUsersForMassive.length > 0 ? this.selectedUsersForMassive : null,
+      subject: this.massiveSubject,
+      message: this.massiveMessage
+    };
+
+    this.notificationService.sendMassiveEmail(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.massiveResult = result;
+          this.massiveSending = false;
+          if (result.sent > 0) {
+            this.showSuccess(`${result.sent} correos enviados`);
+          }
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          this.massiveSending = false;
+          this.showSuccess('Error al enviar correos');
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Genera links de WhatsApp
+   */
+  generateWhatsAppLinks(): void {
+    if (!this.massiveMessage) {
+      this.showSuccess('Escribe un mensaje primero');
+      return;
+    }
+
+    this.whatsappLinksLoading = true;
+    this.whatsappLinks = [];
+
+    const request = {
+      userIds: this.selectedUsersForMassive.length > 0 ? this.selectedUsersForMassive : null,
+      message: this.massiveMessage
+    };
+
+    this.notificationService.generateWhatsAppLinks(request)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.whatsappLinks = result.links;
+          this.whatsappLinksLoading = false;
+          this.showSuccess(`${result.totalLinks} links generados`);
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          this.whatsappLinksLoading = false;
+          this.showSuccess('Error al generar links');
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Abre link de WhatsApp
+   */
+  openWhatsAppLink(link: string): void {
+    window.open(link, '_blank');
+  }
+
+  /**
+   * Carga usuarios con cursos por vencer/vencidos
+   */
+  loadExpiringCourses(): void {
+    this.expiryLoading = true;
+
+    forkJoin({
+      expiring: this.notificationService.getExpiringCourses(this.expiryDaysFilter),
+      expired: this.notificationService.getExpiredCourses()
+    }).pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.expiringUsers = result.expiring.users;
+          this.expiredUsers = result.expired.users;
+          this.expiryLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading expiring courses:', error);
+          this.expiryLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Notifica a usuarios con cursos por vencer
+   */
+  notifyExpiringUsers(): void {
+    this.expiryLoading = true;
+
+    this.notificationService.notifyExpiringCourses(this.expiryDaysFilter)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          this.showSuccess(`${result.emailsSent} correos enviados de ${result.usersFound} usuarios`);
+          this.expiryLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          this.expiryLoading = false;
+          this.showSuccess('Error al enviar notificaciones');
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Toggle selección de usuario para envío masivo
+   */
+  toggleUserSelection(userId: number): void {
+    const index = this.selectedUsersForMassive.indexOf(userId);
+    if (index > -1) {
+      this.selectedUsersForMassive.splice(index, 1);
+    } else {
+      this.selectedUsersForMassive.push(userId);
+    }
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Seleccionar/deseleccionar todos los usuarios
+   */
+  toggleSelectAll(): void {
+    this.selectAllForMassive = !this.selectAllForMassive;
+    if (this.selectAllForMassive) {
+      this.selectedUsersForMassive = this.students.map(s => s.id);
+    } else {
+      this.selectedUsersForMassive = [];
+    }
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Verifica si un usuario está seleccionado
+   */
+  isUserSelected(userId: number): boolean {
+    return this.selectedUsersForMassive.includes(userId);
+  }
+
+  /**
+   * Genera link de WhatsApp para un usuario específico
+   */
+  getWhatsAppLinkForUser(phone: string, message: string): string {
+    if (!phone) return '';
+    let cleanNumber = phone.replace(/[^0-9]/g, '');
+    if (cleanNumber.length === 9) {
+      cleanNumber = '51' + cleanNumber;
+    }
+    const encodedMessage = encodeURIComponent(message);
+    return `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
   }
 }

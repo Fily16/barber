@@ -88,6 +88,13 @@
         </svg>
         GANANCIAS
       </button>
+      <button class="tab-btn" [class.active]="currentView === 'settings'" (click)="switchView('settings')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3z"></path>
+          <path d="M9 21h6"></path>
+        </svg>
+        NOTIFICACIONES
+      </button>
     </div>
 
     <!-- ============== VISTA: ESTUDIANTES ============== -->
@@ -532,8 +539,452 @@
 
       </div>
     </div>
-  </div>
-</div>
+
+    <!-- ============== VISTA: NOTIFICACIONES ============== -->
+    <div class="view-content" *ngIf="currentView === 'settings'">
+      <!-- Header -->
+      <header class="admin-header">
+        <h1>📧 Sistema de Notificaciones</h1>
+        <p>Configura emails automáticos y envío masivo</p>
+      </header>
+
+      <!-- Sub-tabs de notificaciones -->
+      <div class="settings-tabs">
+        <button class="settings-tab" [class.active]="settingsTab === 'email-config'" (click)="setSettingsTab('email-config')">
+          ⚙️ Configuración
+        </button>
+        <button class="settings-tab" [class.active]="settingsTab === 'templates'" (click)="setSettingsTab('templates')">
+          📝 Plantillas
+        </button>
+        <button class="settings-tab" [class.active]="settingsTab === 'automation'" (click)="setSettingsTab('automation')">
+          🤖 Automatización
+        </button>
+        <button class="settings-tab" [class.active]="settingsTab === 'massive'" (click)="setSettingsTab('massive')">
+          📤 Envío Masivo
+        </button>
+        <button class="settings-tab" [class.active]="settingsTab === 'expiring'" (click)="setSettingsTab('expiring')">
+          ⏰ Por Vencer
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-container" *ngIf="emailConfigLoading || settingsLoading">
+        <div class="spinner"></div>
+        <p class="loading-message">Cargando configuración...</p>
+      </div>
+
+      <!-- ========== TAB: CONFIGURACIÓN DE EMAIL ========== -->
+      <div class="settings-content" *ngIf="settingsTab === 'email-config' && !emailConfigLoading">
+        <div class="settings-section">
+          <h3>📧 Configuración del Servidor de Correo</h3>
+          <p class="section-description">Configura el correo desde el cual se enviarán las notificaciones (Gmail)</p>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Correo Emisor *</label>
+              <input type="email" [(ngModel)]="emailConfig.senderEmail" placeholder="tucorreo@gmail.com" />
+            </div>
+            <div class="form-group">
+              <label>Contraseña de Aplicación *</label>
+              <input type="password" [(ngModel)]="emailConfig.appPassword" placeholder="xxxx xxxx xxxx xxxx" />
+              <span class="form-hint">Genera una en tu cuenta de Google → Seguridad → Contraseñas de aplicación</span>
+            </div>
+            <div class="form-group">
+              <label>Nombre del Remitente</label>
+              <input type="text" [(ngModel)]="emailConfig.senderName" placeholder="Ralph Cuts Academy" />
+            </div>
+            <div class="form-group">
+              <label>URL del Botón</label>
+              <input type="text" [(ngModel)]="emailConfig.buttonUrl" placeholder="https://tudominio.com/curso" />
+            </div>
+          </div>
+
+          <div class="toggle-group">
+            <label class="toggle-label">
+              <input type="checkbox" [(ngModel)]="emailConfig.enabled" />
+              <span class="toggle-switch"></span>
+              <span>Envío de correos {{ emailConfig.enabled ? 'activado' : 'desactivado' }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>🎨 Personalización de Marca</h3>
+          <p class="section-description">Personaliza los colores y logo de tus correos</p>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>URL del Logo</label>
+              <input type="text" [(ngModel)]="emailConfig.logoUrl" placeholder="https://tudominio.com/logo.png" />
+            </div>
+            <div class="form-group color-group">
+              <label>Color Principal</label>
+              <div class="color-input-wrapper">
+                <input type="color" [(ngModel)]="emailConfig.primaryColor" />
+                <input type="text" [(ngModel)]="emailConfig.primaryColor" placeholder="#c9a227" />
+              </div>
+            </div>
+            <div class="form-group color-group">
+              <label>Color de Fondo</label>
+              <div class="color-input-wrapper">
+                <input type="color" [(ngModel)]="emailConfig.backgroundColor" />
+                <input type="text" [(ngModel)]="emailConfig.backgroundColor" placeholder="#0a0a0a" />
+              </div>
+            </div>
+            <div class="form-group color-group">
+              <label>Color de Texto</label>
+              <div class="color-input-wrapper">
+                <input type="color" [(ngModel)]="emailConfig.textColor" />
+                <input type="text" [(ngModel)]="emailConfig.textColor" placeholder="#ffffff" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prueba de correo -->
+        <div class="settings-section">
+          <h3>🧪 Probar Configuración</h3>
+          <div class="test-email-row">
+            <input type="email" [(ngModel)]="emailTestEmail" placeholder="correo@ejemplo.com" />
+            <button class="btn-secondary" (click)="sendTestEmail()" [disabled]="emailTestSending">
+              {{ emailTestSending ? 'Enviando...' : 'Enviar Prueba' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="form-error" *ngIf="emailConfigError">{{ emailConfigError }}</div>
+
+        <div class="settings-actions">
+          <button class="btn-primary" (click)="saveEmailConfig()" [disabled]="emailConfigLoading">
+            💾 Guardar Configuración
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== TAB: PLANTILLAS ========== -->
+      <div class="settings-content" *ngIf="settingsTab === 'templates' && !emailConfigLoading">
+
+        <!-- Plantilla de Bienvenida -->
+        <div class="settings-section">
+          <h3>👋 Correo de Bienvenida</h3>
+          <p class="section-description">Se envía automáticamente al registrar un nuevo estudiante</p>
+          <p class="variables-hint">Variables disponibles: <code>&#123;nombre&#125;</code>, <code>&#123;usuario&#125;</code>, <code>&#123;password&#125;</code></p>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label>Asunto</label>
+              <input type="text" [(ngModel)]="emailConfig.welcomeSubject" placeholder="Bienvenido a Ralph Cuts Academy" />
+            </div>
+            <div class="form-group full-width">
+              <label>Título</label>
+              <input type="text" [(ngModel)]="emailConfig.welcomeTitle" placeholder="¡Bienvenido, {nombre}! 🎉" />
+            </div>
+            <div class="form-group full-width">
+              <label>Mensaje</label>
+              <textarea [(ngModel)]="emailConfig.welcomeMessage" rows="3" placeholder="Tu cuenta ha sido creada exitosamente..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Texto del Botón</label>
+              <input type="text" [(ngModel)]="emailConfig.welcomeButtonText" placeholder="INGRESAR A MI CURSO" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Plantilla de Vencimiento Próximo -->
+        <div class="settings-section">
+          <h3>⚠️ Correo de Vencimiento Próximo</h3>
+          <p class="section-description">Se envía cuando el acceso está por vencer</p>
+          <p class="variables-hint">Variables disponibles: <code>&#123;nombre&#125;</code>, <code>&#123;curso&#125;</code>, <code>&#123;dias&#125;</code></p>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label>Asunto</label>
+              <input type="text" [(ngModel)]="emailConfig.expiringSubject" placeholder="Tu acceso está por vencer" />
+            </div>
+            <div class="form-group full-width">
+              <label>Título</label>
+              <input type="text" [(ngModel)]="emailConfig.expiringTitle" placeholder="¡{nombre}, tu acceso vence pronto!" />
+            </div>
+            <div class="form-group full-width">
+              <label>Mensaje</label>
+              <textarea [(ngModel)]="emailConfig.expiringMessage" rows="3" placeholder="Tu acceso al curso {curso} vence en {dias} días..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Texto del Botón</label>
+              <input type="text" [(ngModel)]="emailConfig.expiringButtonText" placeholder="RENOVAR ACCESO" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Plantilla de Vencido -->
+        <div class="settings-section">
+          <h3>❌ Correo de Acceso Vencido</h3>
+          <p class="section-description">Se envía cuando el acceso ha expirado</p>
+          <p class="variables-hint">Variables disponibles: <code>&#123;nombre&#125;</code>, <code>&#123;curso&#125;</code></p>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label>Asunto</label>
+              <input type="text" [(ngModel)]="emailConfig.expiredSubject" placeholder="Tu acceso ha vencido" />
+            </div>
+            <div class="form-group full-width">
+              <label>Título</label>
+              <input type="text" [(ngModel)]="emailConfig.expiredTitle" placeholder="{nombre}, tu acceso ha expirado" />
+            </div>
+            <div class="form-group full-width">
+              <label>Mensaje</label>
+              <textarea [(ngModel)]="emailConfig.expiredMessage" rows="3" placeholder="Tu acceso al curso {curso} ha vencido..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Texto del Botón</label>
+              <input type="text" [(ngModel)]="emailConfig.expiredButtonText" placeholder="RENOVAR AHORA" />
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-primary" (click)="saveEmailConfig()" [disabled]="emailConfigLoading">
+            💾 Guardar Plantillas
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== TAB: AUTOMATIZACIÓN ========== -->
+      <div class="settings-content" *ngIf="settingsTab === 'automation' && !settingsLoading">
+        <div class="settings-section">
+          <h3>📧 Notificaciones por Email</h3>
+
+          <div class="automation-options">
+            <label class="toggle-label">
+              <input type="checkbox" [(ngModel)]="notificationSettings.emailOnWelcome" />
+              <span class="toggle-switch"></span>
+              <span>Enviar email de bienvenida al crear estudiante</span>
+            </label>
+
+            <label class="toggle-label">
+              <input type="checkbox" [(ngModel)]="notificationSettings.emailOnExpiringSoon" />
+              <span class="toggle-switch"></span>
+              <span>Enviar email cuando el acceso está por vencer</span>
+            </label>
+
+            <div class="sub-option" *ngIf="notificationSettings.emailOnExpiringSoon">
+              <label>Días antes del vencimiento:</label>
+              <input type="number" [(ngModel)]="notificationSettings.emailDaysBeforeExpiry" min="1" max="30" />
+            </div>
+
+            <label class="toggle-label">
+              <input type="checkbox" [(ngModel)]="notificationSettings.emailOnExpired" />
+              <span class="toggle-switch"></span>
+              <span>Enviar email cuando el acceso vence</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <h3>📱 Plantillas WhatsApp</h3>
+          <p class="section-description">Personaliza los mensajes para los links de WhatsApp</p>
+
+          <div class="form-group full-width">
+            <label>Mensaje de Bienvenida</label>
+            <textarea [(ngModel)]="notificationSettings.whatsappWelcomeTemplate" rows="4"></textarea>
+            <span class="form-hint">Variables: &#123;nombre&#125;, &#123;usuario&#125;, &#123;password&#125;, &#123;url&#125;</span>          </div>
+
+          <div class="form-group full-width">
+            <label>Mensaje de Vencimiento Próximo</label>
+            <textarea [(ngModel)]="notificationSettings.whatsappExpiringTemplate" rows="3"></textarea>
+            <span class="form-hint">Variables: &#123;nombre&#125;, &#123;curso&#125;, &#123;dias&#125;, &#123;url&#125;</span>          </div>
+
+          <div class="form-group full-width">
+            <label>Mensaje de Acceso Vencido</label>
+            <textarea [(ngModel)]="notificationSettings.whatsappExpiredTemplate" rows="3"></textarea>
+            <span class="form-hint">Variables: &#123;nombre&#125;, &#123;curso&#125;, &#123;url&#125;</span>          </div>
+
+          <div class="form-group full-width">
+            <label>Plantilla para Envío Masivo</label>
+            <textarea [(ngModel)]="notificationSettings.whatsappMassiveTemplate" rows="3"></textarea>
+            <span class="form-hint">Variables: &#123;nombre&#125;, &#123;mensaje&#125;</span>          </div>
+        </div>
+
+        <div class="form-error" *ngIf="settingsError">{{ settingsError }}</div>
+
+        <div class="settings-actions">
+          <button class="btn-primary" (click)="saveNotificationSettings()" [disabled]="settingsLoading">
+            💾 Guardar Configuración
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== TAB: ENVÍO MASIVO ========== -->
+      <div class="settings-content" *ngIf="settingsTab === 'massive'">
+        <div class="settings-section">
+          <h3>📤 Envío Masivo</h3>
+
+          <!-- Tabs Email/WhatsApp -->
+          <div class="massive-tabs">
+            <button class="massive-tab" [class.active]="massiveTab === 'email'" (click)="massiveTab = 'email'">
+              📧 Email
+            </button>
+            <button class="massive-tab" [class.active]="massiveTab === 'whatsapp'" (click)="massiveTab = 'whatsapp'">
+              📱 WhatsApp
+            </button>
+          </div>
+
+          <!-- Selección de usuarios -->
+          <div class="user-selection">
+            <div class="selection-header">
+              <label class="toggle-label">
+                <input type="checkbox" [checked]="selectAllForMassive" (change)="toggleSelectAll()" />
+                <span class="toggle-switch"></span>
+                <span>{{ selectAllForMassive ? 'Deseleccionar todos' : 'Seleccionar todos' }}</span>
+              </label>
+              <span class="selected-count">{{ selectedUsersForMassive.length }} seleccionados</span>
+            </div>
+
+            <div class="users-grid">
+              <div class="user-checkbox" *ngFor="let student of students"
+                   [class.selected]="isUserSelected(student.id)"
+                   (click)="toggleUserSelection(student.id)">
+                <input type="checkbox" [checked]="isUserSelected(student.id)" />
+                <div class="user-info">
+                  <span class="user-name">{{ student.fullName }}</span>
+                  <span class="user-contact">{{ massiveTab === 'email' ? student.email : student.phone }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formulario de mensaje -->
+          <div class="message-form">
+            <div class="form-group" *ngIf="massiveTab === 'email'">
+              <label>Asunto del Correo *</label>
+              <input type="text" [(ngModel)]="massiveSubject" placeholder="Asunto del mensaje" />
+            </div>
+
+            <div class="form-group">
+              <label>Mensaje *</label>
+              <textarea [(ngModel)]="massiveMessage" rows="5"
+                        placeholder="Escribe tu mensaje aquí... Usa {nombre} para personalizar"></textarea>
+            </div>
+
+            <!-- Botón de envío -->
+            <div class="massive-actions">
+              <button class="btn-primary" *ngIf="massiveTab === 'email'"
+                      (click)="sendMassiveEmail()" [disabled]="massiveSending">
+                {{ massiveSending ? 'Enviando...' : '📧 Enviar Correos' }}
+              </button>
+
+              <button class="btn-primary" *ngIf="massiveTab === 'whatsapp'"
+                      (click)="generateWhatsAppLinks()" [disabled]="whatsappLinksLoading">
+                {{ whatsappLinksLoading ? 'Generando...' : '📱 Generar Links de WhatsApp' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Resultado de envío masivo de email -->
+          <div class="massive-result" *ngIf="massiveResult">
+            <div class="result-card success">
+              <span class="result-icon">✅</span>
+              <span class="result-text">{{ massiveResult.sent }} correos enviados</span>
+            </div>
+            <div class="result-card error" *ngIf="massiveResult.failed > 0">
+              <span class="result-icon">❌</span>
+              <span class="result-text">{{ massiveResult.failed }} fallidos</span>
+            </div>
+          </div>
+
+          <!-- Links de WhatsApp generados -->
+          <div class="whatsapp-links" *ngIf="whatsappLinks.length > 0">
+            <h4>📱 Links Generados ({{ whatsappLinks.length }})</h4>
+            <p class="links-hint">Haz clic en cada link para abrir WhatsApp y enviar el mensaje</p>
+
+            <div class="links-grid">
+              <div class="link-card" *ngFor="let link of whatsappLinks">
+                <div class="link-info">
+                  <span class="link-name">{{ link.fullName }}</span>
+                  <span class="link-phone">{{ link.phone }}</span>
+                </div>
+                <a [href]="link.whatsappLink" target="_blank" class="btn-whatsapp">
+                  Enviar 📱
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== TAB: POR VENCER ========== -->
+      <div class="settings-content" *ngIf="settingsTab === 'expiring'">
+        <div class="settings-section">
+          <h3>⏰ Cursos Por Vencer</h3>
+
+          <div class="expiry-controls">
+            <div class="form-group inline">
+              <label>Mostrar cursos que vencen en:</label>
+              <input type="number" [(ngModel)]="expiryDaysFilter" min="1" max="90" />
+              <span>días</span>
+            </div>
+            <button class="btn-secondary" (click)="loadExpiringCourses()" [disabled]="expiryLoading">
+              🔄 Actualizar
+            </button>
+            <button class="btn-primary" (click)="notifyExpiringUsers()" [disabled]="expiryLoading || expiringUsers.length === 0">
+              📧 Notificar a Todos
+            </button>
+          </div>
+
+          <!-- Loading -->
+          <div class="loading-inline" *ngIf="expiryLoading">
+            <div class="spinner-small"></div>
+            <span>Cargando...</span>
+          </div>
+
+          <!-- Usuarios con cursos por vencer -->
+          <div class="expiry-section" *ngIf="!expiryLoading && expiringUsers.length > 0">
+            <h4>⚠️ Por Vencer ({{ expiringUsers.length }})</h4>
+            <div class="expiry-table">
+              <div class="expiry-row header">
+                <span>Estudiante</span>
+                <span>Curso</span>
+                <span>Vence en</span>
+                <span>Acciones</span>
+              </div>
+              <div class="expiry-row" *ngFor="let user of expiringUsers">
+                <span class="expiry-name">{{ user.fullName }}</span>
+                <span class="expiry-course">{{ user.courseName }}</span>
+                <span class="expiry-days" [class.urgent]="user.daysLeft <= 3">{{ user.daysLeft }} días</span>
+                <div class="expiry-actions">
+                  <a *ngIf="user.phone" [href]="getWhatsAppLinkForUser(user.phone, 'Hola ' + user.fullName + ', tu acceso al curso ' + user.courseName + ' vence en ' + user.daysLeft + ' días.')"
+                     target="_blank" class="action-link whatsapp">📱</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-state-small" *ngIf="!expiryLoading && expiringUsers.length === 0">
+            ✅ No hay cursos por vencer en los próximos {{ expiryDaysFilter }} días
+          </div>
+
+          <!-- Usuarios con cursos vencidos -->
+          <div class="expiry-section expired" *ngIf="!expiryLoading && expiredUsers.length > 0">
+            <h4>❌ Ya Vencidos ({{ expiredUsers.length }})</h4>
+            <div class="expiry-table">
+              <div class="expiry-row header">
+                <span>Estudiante</span>
+                <span>Curso</span>
+                <span>Venció</span>
+                <span>Acciones</span>
+              </div>
+              <div class="expiry-row" *ngFor="let user of expiredUsers">
+                <span class="expiry-name">{{ user.fullName }}</span>
+                <span class="expiry-course">{{ user.courseName }}</span>
+                <span class="expiry-date">{{ formatDate(user.expiresAt) }}</span>
+                <div class="expiry-actions">
+                  <a *ngIf="user.phone" [href]="getWhatsAppLinkForUser(user.phone, 'Hola ' + user.fullName + ', tu acceso al curso ' + user.courseName + ' ha vencido. ¡Renueva para seguir aprendiendo!')"
+                     target="_blank" class="action-link whatsapp">📱</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
 
 <!-- ============== MODAL: CREAR/EDITAR ESTUDIANTE ============== -->
 <div class="modal-overlay" *ngIf="showStudentModal" (click)="closeStudentModal()">
@@ -886,77 +1337,6 @@
   </div>
 </div>
 
-<!-- ============== MODAL: EXTENDER/RENOVAR ACCESO ============== -->
-<div class="modal-overlay" *ngIf="showExtendModal" (click)="closeExtendModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>🔄 Renovar Acceso</h3>
-      <button class="close-btn" (click)="closeExtendModal()">×</button>
-    </div>
-    <p class="modal-subtitle">Curso: <strong>{{ extendingUserCourse?.courseTitle }}</strong></p>
-    <form (ngSubmit)="extendAccessWithPayment()">
-
-      <!-- Tipo de duración -->
-      <div class="form-group">
-        <label>Tipo de Duración *</label>
-        <div class="duration-type-selector">
-          <button type="button"
-                  class="duration-type-btn"
-                  [class.active]="extendDurationType === 'days'"
-                  (click)="extendDurationType = 'days'">
-            📅 Días
-          </button>
-          <button type="button"
-                  class="duration-type-btn"
-                  [class.active]="extendDurationType === 'months'"
-                  (click)="extendDurationType = 'months'">
-            🗓️ Meses
-          </button>
-        </div>
-      </div>
-
-      <!-- Input para días -->
-      <div class="form-group" *ngIf="extendDurationType === 'days'">
-        <label>Duración (días) *</label>
-        <input type="number" [(ngModel)]="extendForm.durationDays" name="extendDurationDays" min="1" max="365" placeholder="Ej: 7, 15, 30" />
-      </div>
-
-      <!-- Input para meses -->
-      <div class="form-group" *ngIf="extendDurationType === 'months'">
-        <label>Duración (meses) *</label>
-        <input type="number" [(ngModel)]="extendForm.durationMonths" name="extendDurationMonths" min="1" max="24" />
-      </div>
-
-      <!-- Sección de pago -->
-      <div class="payment-section">
-        <h4 class="section-title">💰 Registro de Pago</h4>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Monto Cobrado</label>
-            <input type="number" [(ngModel)]="extendForm.amount" name="extendAmount" min="0" step="0.01" placeholder="0.00" />
-            <span class="form-hint">Dejar en 0 si es gratis</span>
-          </div>
-          <div class="form-group form-group-sm">
-            <label>Moneda</label>
-            <select [(ngModel)]="extendForm.currency" name="extendCurrency">
-              <option value="PEN">S/. Soles</option>
-              <option value="USD">$ Dólares</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-error" *ngIf="extendFormError">{{ extendFormError }}</div>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" (click)="closeExtendModal()">Cancelar</button>
-        <button type="submit" class="btn-primary" [disabled]="isLoading">
-          {{ isLoading ? 'Procesando...' : 'Renovar Acceso' }}
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <!-- ============== MODAL: EXTENDER ACCESO CON PAGO ============== -->
 <div class="modal-overlay" *ngIf="showExtendModal" (click)="closeExtendModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
@@ -1025,5 +1405,8 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+
   </div>
 </div>
