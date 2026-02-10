@@ -99,13 +99,11 @@
 
     <!-- ============== VISTA: ESTUDIANTES ============== -->
     <div class="view-content" *ngIf="currentView === 'students'">
-      <!-- Header -->
       <header class="admin-header">
         <h1>Gestión de Estudiantes</h1>
         <p>{{ students.length }} estudiantes registrados</p>
       </header>
 
-      <!-- Acciones -->
       <div class="admin-actions">
         <button class="btn-primary" (click)="openNewStudentModal()">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -116,7 +114,6 @@
         </button>
       </div>
 
-      <!-- Loading -->
       <div class="loading-container" *ngIf="isLoading">
         <div class="spinner"></div>
         <p class="loading-message">{{ loadingMessage }}</p>
@@ -125,7 +122,6 @@
         </p>
       </div>
 
-      <!-- Tabla de estudiantes -->
       <div class="table-container" *ngIf="!isLoading">
         <table class="admin-table">
           <thead>
@@ -207,13 +203,11 @@
 
     <!-- ============== VISTA: VIDEOS ============== -->
     <div class="view-content" *ngIf="currentView === 'videos'">
-      <!-- Header -->
       <header class="admin-header">
         <h1>Gestión de Videos</h1>
         <p>Sube videos directamente desde aquí - Se almacenan en Bunny Stream</p>
       </header>
 
-      <!-- Storage Stats Card -->
       <div class="storage-stats-card" *ngIf="!storageLoading && storageStats">
         <div class="storage-header">
           <div class="storage-icon">
@@ -250,7 +244,6 @@
         </div>
       </div>
 
-      <!-- Storage Loading -->
       <div class="storage-stats-card loading" *ngIf="storageLoading">
         <div class="storage-loading">
           <div class="spinner-small"></div>
@@ -258,22 +251,18 @@
         </div>
       </div>
 
-      <!-- Selector de curso -->
       <div class="course-selector">
         <label>Seleccionar curso:</label>
         <div class="course-tabs">
-          <button
-            *ngFor="let course of courses"
-            class="course-tab"
-            [class.active]="selectedCourseForVideos?.id === course.id"
-            (click)="selectCourseForVideos(course)">
+          <button *ngFor="let course of courses" class="course-tab"
+                  [class.active]="selectedCourseForVideos?.id === course.id"
+                  (click)="selectCourseForVideos(course)">
             {{ course.title }}
             <span class="video-count">{{ course.totalVideos }} videos</span>
           </button>
         </div>
       </div>
 
-      <!-- Acciones de videos -->
       <div class="admin-actions" *ngIf="selectedCourseForVideos">
         <button class="btn-primary" (click)="openNewVideoModal()">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -284,16 +273,12 @@
         </button>
       </div>
 
-      <!-- Loading -->
       <div class="loading-container" *ngIf="isLoading">
         <div class="spinner"></div>
         <p class="loading-message">{{ loadingMessage }}</p>
       </div>
 
-      <!-- Lista de videos -->
       <div class="videos-list" *ngIf="!isLoading && selectedCourseForVideos">
-
-        <!-- Sin videos -->
         <div class="empty-videos" *ngIf="getVideosForSelectedCourse().length === 0">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <polygon points="23 7 16 12 23 17 23 7"></polygon>
@@ -303,7 +288,6 @@
           <span>Haz clic en "Subir Video" para comenzar</span>
         </div>
 
-        <!-- Videos grid -->
         <div class="videos-grid" *ngIf="getVideosForSelectedCourse().length > 0">
           <div class="video-card" *ngFor="let video of getVideosForSelectedCourse()">
             <div class="video-thumbnail">
@@ -336,7 +320,6 @@
         </div>
       </div>
 
-      <!-- Sin cursos -->
       <div class="empty-videos" *ngIf="!isLoading && courses.length === 0">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
@@ -349,13 +332,11 @@
 
     <!-- ============== VISTA: DASHBOARD DE GANANCIAS ============== -->
     <div class="view-content" *ngIf="currentView === 'dashboard'">
-      <!-- Header -->
       <header class="admin-header">
         <h1>💰 Dashboard de Ganancias</h1>
         <p>{{ dashboardStats?.monthName }} {{ dashboardStats?.currentYear }} - Tipo de cambio: 1 USD = {{ dashboardStats?.exchangeRateUsdToPen | number:'1.2-2' }} PEN</p>
       </header>
 
-      <!-- Acciones -->
       <div class="admin-actions">
         <button class="btn-primary" (click)="refreshDashboard()" [disabled]="dashboardLoading">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -366,25 +347,18 @@
         </button>
       </div>
 
-      <!-- Loading -->
       <div class="loading-container" *ngIf="dashboardLoading">
         <div class="spinner"></div>
         <p class="loading-message">Cargando estadísticas...</p>
       </div>
 
-      <!-- Error -->
       <div class="dashboard-error" *ngIf="dashboardError && !dashboardLoading">
         <p>{{ dashboardError }}</p>
         <button class="btn-secondary" (click)="refreshDashboard()">Reintentar</button>
       </div>
 
-      <!-- Dashboard Content -->
       <div class="dashboard-content" *ngIf="dashboardStats && !dashboardLoading">
-
-        <!-- Tarjetas principales -->
         <div class="dashboard-grid">
-
-          <!-- Ventas del mes -->
           <div class="dashboard-card sales-card">
             <div class="card-icon sales">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -399,7 +373,6 @@
             </div>
           </div>
 
-          <!-- Costos Bunny -->
           <div class="dashboard-card bunny-card">
             <div class="card-icon bunny">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -413,7 +386,6 @@
             </div>
           </div>
 
-          <!-- Ganancia Neta -->
           <div class="dashboard-card profit-card">
             <div class="card-icon profit">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -429,15 +401,11 @@
               </span>
             </div>
           </div>
-
         </div>
 
-        <!-- Distribución de ganancias -->
         <div class="distribution-section">
           <h3>📊 Distribución de Ganancias</h3>
-
           <div class="distribution-grid">
-            <!-- Tu parte (Desarrollador) -->
             <div class="distribution-card developer">
               <div class="distribution-header">
                 <span class="distribution-icon">👨‍💻</span>
@@ -449,8 +417,6 @@
                 <div class="distribution-fill developer" [style.width.%]="dashboardStats.developerPercentage"></div>
               </div>
             </div>
-
-            <!-- Parte del barbero -->
             <div class="distribution-card barber">
               <div class="distribution-header">
                 <span class="distribution-icon">💈</span>
@@ -465,7 +431,6 @@
           </div>
         </div>
 
-        <!-- Detalles de costos Bunny -->
         <div class="bunny-details-section">
           <h3>🐰 Detalles Bunny Stream</h3>
           <div class="bunny-details-grid">
@@ -487,7 +452,6 @@
           </div>
         </div>
 
-        <!-- Resumen de actividad -->
         <div class="activity-section">
           <h3>📈 Actividad del Mes</h3>
           <div class="activity-grid">
@@ -506,7 +470,6 @@
           </div>
         </div>
 
-        <!-- Pagos recientes -->
         <div class="recent-payments-section" *ngIf="dashboardStats.recentPayments && dashboardStats.recentPayments.length > 0">
           <h3>🧾 Pagos Recientes</h3>
           <div class="payments-list">
@@ -527,7 +490,6 @@
           </div>
         </div>
 
-        <!-- Sin pagos -->
         <div class="empty-payments" *ngIf="!dashboardStats.recentPayments || dashboardStats.recentPayments.length === 0">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
@@ -536,49 +498,34 @@
           <p>No hay pagos registrados</p>
           <span>Los pagos aparecerán aquí cuando asignes cursos con monto</span>
         </div>
-
       </div>
     </div>
 
     <!-- ============== VISTA: NOTIFICACIONES ============== -->
     <div class="view-content" *ngIf="currentView === 'settings'">
-      <!-- Header -->
       <header class="admin-header">
         <h1>📧 Sistema de Notificaciones</h1>
         <p>Configura emails automáticos y envío masivo</p>
       </header>
 
-      <!-- Sub-tabs de notificaciones -->
       <div class="settings-tabs">
-        <button class="settings-tab" [class.active]="settingsTab === 'email-config'" (click)="setSettingsTab('email-config')">
-          ⚙️ Configuración
-        </button>
-        <button class="settings-tab" [class.active]="settingsTab === 'templates'" (click)="setSettingsTab('templates')">
-          📝 Plantillas
-        </button>
-        <button class="settings-tab" [class.active]="settingsTab === 'automation'" (click)="setSettingsTab('automation')">
-          🤖 Automatización
-        </button>
-        <button class="settings-tab" [class.active]="settingsTab === 'massive'" (click)="setSettingsTab('massive')">
-          📤 Envío Masivo
-        </button>
-        <button class="settings-tab" [class.active]="settingsTab === 'expiring'" (click)="setSettingsTab('expiring')">
-          ⏰ Por Vencer
-        </button>
+        <button class="settings-tab" [class.active]="settingsTab === 'email-config'" (click)="setSettingsTab('email-config')">⚙️ Configuración</button>
+        <button class="settings-tab" [class.active]="settingsTab === 'templates'" (click)="setSettingsTab('templates')">📝 Plantillas</button>
+        <button class="settings-tab" [class.active]="settingsTab === 'automation'" (click)="setSettingsTab('automation')">🤖 Automatización</button>
+        <button class="settings-tab" [class.active]="settingsTab === 'massive'" (click)="setSettingsTab('massive')">📤 Envío Masivo</button>
+        <button class="settings-tab" [class.active]="settingsTab === 'expiring'" (click)="setSettingsTab('expiring')">⏰ Por Vencer</button>
       </div>
 
-      <!-- Loading -->
       <div class="loading-container" *ngIf="emailConfigLoading || settingsLoading">
         <div class="spinner"></div>
         <p class="loading-message">Cargando configuración...</p>
       </div>
 
-      <!-- ========== TAB: CONFIGURACIÓN DE EMAIL ========== -->
+      <!-- TAB: CONFIGURACIÓN DE EMAIL -->
       <div class="settings-content" *ngIf="settingsTab === 'email-config' && !emailConfigLoading">
         <div class="settings-section">
           <h3>📧 Configuración del Servidor de Correo</h3>
           <p class="section-description">Configura el correo desde el cual se enviarán las notificaciones (Gmail)</p>
-
           <div class="form-grid">
             <div class="form-group">
               <label>Correo Emisor *</label>
@@ -598,7 +545,6 @@
               <input type="text" [(ngModel)]="emailConfig.buttonUrl" placeholder="https://tudominio.com/curso" />
             </div>
           </div>
-
           <div class="toggle-group">
             <label class="toggle-label">
               <input type="checkbox" [(ngModel)]="emailConfig.enabled" />
@@ -607,11 +553,9 @@
             </label>
           </div>
         </div>
-
         <div class="settings-section">
           <h3>🎨 Personalización de Marca</h3>
           <p class="section-description">Personaliza los colores y logo de tus correos</p>
-
           <div class="form-grid">
             <div class="form-group">
               <label>URL del Logo</label>
@@ -640,8 +584,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Prueba de correo -->
         <div class="settings-section">
           <h3>🧪 Probar Configuración</h3>
           <div class="test-email-row">
@@ -651,196 +593,95 @@
             </button>
           </div>
         </div>
-
         <div class="form-error" *ngIf="emailConfigError">{{ emailConfigError }}</div>
-
         <div class="settings-actions">
-          <button class="btn-primary" (click)="saveEmailConfig()" [disabled]="emailConfigLoading">
-            💾 Guardar Configuración
-          </button>
+          <button class="btn-primary" (click)="saveEmailConfig()" [disabled]="emailConfigLoading">💾 Guardar Configuración</button>
         </div>
       </div>
 
-      <!-- ========== TAB: PLANTILLAS ========== -->
+      <!-- TAB: PLANTILLAS -->
       <div class="settings-content" *ngIf="settingsTab === 'templates' && !emailConfigLoading">
-
-        <!-- Plantilla de Bienvenida -->
         <div class="settings-section">
           <h3>👋 Correo de Bienvenida</h3>
           <p class="section-description">Se envía automáticamente al registrar un nuevo estudiante</p>
           <p class="variables-hint">Variables disponibles: <code>&#123;nombre&#125;</code>, <code>&#123;usuario&#125;</code>, <code>&#123;password&#125;</code></p>
           <div class="form-grid">
-            <div class="form-group full-width">
-              <label>Asunto</label>
-              <input type="text" [(ngModel)]="emailConfig.welcomeSubject" placeholder="Bienvenido a Ralph Cuts Academy" />
-            </div>
-            <div class="form-group full-width">
-              <label>Título</label>
-              <input type="text" [(ngModel)]="emailConfig.welcomeTitle" placeholder="¡Bienvenido, {nombre}! 🎉" />
-            </div>
-            <div class="form-group full-width">
-              <label>Mensaje</label>
-              <textarea [(ngModel)]="emailConfig.welcomeMessage" rows="3" placeholder="Tu cuenta ha sido creada exitosamente..."></textarea>
-            </div>
-            <div class="form-group">
-              <label>Texto del Botón</label>
-              <input type="text" [(ngModel)]="emailConfig.welcomeButtonText" placeholder="INGRESAR A MI CURSO" />
-            </div>
+            <div class="form-group full-width"><label>Asunto</label><input type="text" [(ngModel)]="emailConfig.welcomeSubject" placeholder="Bienvenido a Ralph Cuts Academy" /></div>
+            <div class="form-group full-width"><label>Título</label><input type="text" [(ngModel)]="emailConfig.welcomeTitle" placeholder="¡Bienvenido, {nombre}! 🎉" /></div>
+            <div class="form-group full-width"><label>Mensaje</label><textarea [(ngModel)]="emailConfig.welcomeMessage" rows="3" placeholder="Tu cuenta ha sido creada exitosamente..."></textarea></div>
+            <div class="form-group"><label>Texto del Botón</label><input type="text" [(ngModel)]="emailConfig.welcomeButtonText" placeholder="INGRESAR A MI CURSO" /></div>
           </div>
         </div>
-
-        <!-- Plantilla de Vencimiento Próximo -->
         <div class="settings-section">
           <h3>⚠️ Correo de Vencimiento Próximo</h3>
           <p class="section-description">Se envía cuando el acceso está por vencer</p>
           <p class="variables-hint">Variables disponibles: <code>&#123;nombre&#125;</code>, <code>&#123;curso&#125;</code>, <code>&#123;dias&#125;</code></p>
           <div class="form-grid">
-            <div class="form-group full-width">
-              <label>Asunto</label>
-              <input type="text" [(ngModel)]="emailConfig.expiringSubject" placeholder="Tu acceso está por vencer" />
-            </div>
-            <div class="form-group full-width">
-              <label>Título</label>
-              <input type="text" [(ngModel)]="emailConfig.expiringTitle" placeholder="¡{nombre}, tu acceso vence pronto!" />
-            </div>
-            <div class="form-group full-width">
-              <label>Mensaje</label>
-              <textarea [(ngModel)]="emailConfig.expiringMessage" rows="3" placeholder="Tu acceso al curso {curso} vence en {dias} días..."></textarea>
-            </div>
-            <div class="form-group">
-              <label>Texto del Botón</label>
-              <input type="text" [(ngModel)]="emailConfig.expiringButtonText" placeholder="RENOVAR ACCESO" />
-            </div>
+            <div class="form-group full-width"><label>Asunto</label><input type="text" [(ngModel)]="emailConfig.expiringSubject" placeholder="Tu acceso está por vencer" /></div>
+            <div class="form-group full-width"><label>Título</label><input type="text" [(ngModel)]="emailConfig.expiringTitle" placeholder="¡{nombre}, tu acceso vence pronto!" /></div>
+            <div class="form-group full-width"><label>Mensaje</label><textarea [(ngModel)]="emailConfig.expiringMessage" rows="3" placeholder="Tu acceso al curso {curso} vence en {dias} días..."></textarea></div>
+            <div class="form-group"><label>Texto del Botón</label><input type="text" [(ngModel)]="emailConfig.expiringButtonText" placeholder="RENOVAR ACCESO" /></div>
           </div>
         </div>
-
-        <!-- Plantilla de Vencido -->
         <div class="settings-section">
           <h3>❌ Correo de Acceso Vencido</h3>
           <p class="section-description">Se envía cuando el acceso ha expirado</p>
           <p class="variables-hint">Variables disponibles: <code>&#123;nombre&#125;</code>, <code>&#123;curso&#125;</code></p>
           <div class="form-grid">
-            <div class="form-group full-width">
-              <label>Asunto</label>
-              <input type="text" [(ngModel)]="emailConfig.expiredSubject" placeholder="Tu acceso ha vencido" />
-            </div>
-            <div class="form-group full-width">
-              <label>Título</label>
-              <input type="text" [(ngModel)]="emailConfig.expiredTitle" placeholder="{nombre}, tu acceso ha expirado" />
-            </div>
-            <div class="form-group full-width">
-              <label>Mensaje</label>
-              <textarea [(ngModel)]="emailConfig.expiredMessage" rows="3" placeholder="Tu acceso al curso {curso} ha vencido..."></textarea>
-            </div>
-            <div class="form-group">
-              <label>Texto del Botón</label>
-              <input type="text" [(ngModel)]="emailConfig.expiredButtonText" placeholder="RENOVAR AHORA" />
-            </div>
+            <div class="form-group full-width"><label>Asunto</label><input type="text" [(ngModel)]="emailConfig.expiredSubject" placeholder="Tu acceso ha vencido" /></div>
+            <div class="form-group full-width"><label>Título</label><input type="text" [(ngModel)]="emailConfig.expiredTitle" placeholder="{nombre}, tu acceso ha expirado" /></div>
+            <div class="form-group full-width"><label>Mensaje</label><textarea [(ngModel)]="emailConfig.expiredMessage" rows="3" placeholder="Tu acceso al curso {curso} ha vencido..."></textarea></div>
+            <div class="form-group"><label>Texto del Botón</label><input type="text" [(ngModel)]="emailConfig.expiredButtonText" placeholder="RENOVAR AHORA" /></div>
           </div>
         </div>
-
         <div class="settings-actions">
-          <button class="btn-primary" (click)="saveEmailConfig()" [disabled]="emailConfigLoading">
-            💾 Guardar Plantillas
-          </button>
+          <button class="btn-primary" (click)="saveEmailConfig()" [disabled]="emailConfigLoading">💾 Guardar Plantillas</button>
         </div>
       </div>
 
-      <!-- ========== TAB: AUTOMATIZACIÓN ========== -->
+      <!-- TAB: AUTOMATIZACIÓN -->
       <div class="settings-content" *ngIf="settingsTab === 'automation' && !settingsLoading">
         <div class="settings-section">
           <h3>📧 Notificaciones por Email</h3>
-
           <div class="automation-options">
-            <label class="toggle-label">
-              <input type="checkbox" [(ngModel)]="notificationSettings.emailOnWelcome" />
-              <span class="toggle-switch"></span>
-              <span>Enviar email de bienvenida al crear estudiante</span>
-            </label>
-
-            <label class="toggle-label">
-              <input type="checkbox" [(ngModel)]="notificationSettings.emailOnExpiringSoon" />
-              <span class="toggle-switch"></span>
-              <span>Enviar email cuando el acceso está por vencer</span>
-            </label>
-
+            <label class="toggle-label"><input type="checkbox" [(ngModel)]="notificationSettings.emailOnWelcome" /><span class="toggle-switch"></span><span>Enviar email de bienvenida al crear estudiante</span></label>
+            <label class="toggle-label"><input type="checkbox" [(ngModel)]="notificationSettings.emailOnExpiringSoon" /><span class="toggle-switch"></span><span>Enviar email cuando el acceso está por vencer</span></label>
             <div class="sub-option" *ngIf="notificationSettings.emailOnExpiringSoon">
               <label>Días antes del vencimiento:</label>
               <input type="number" [(ngModel)]="notificationSettings.emailDaysBeforeExpiry" min="1" max="30" />
             </div>
-
-            <label class="toggle-label">
-              <input type="checkbox" [(ngModel)]="notificationSettings.emailOnExpired" />
-              <span class="toggle-switch"></span>
-              <span>Enviar email cuando el acceso vence</span>
-            </label>
+            <label class="toggle-label"><input type="checkbox" [(ngModel)]="notificationSettings.emailOnExpired" /><span class="toggle-switch"></span><span>Enviar email cuando el acceso vence</span></label>
           </div>
         </div>
-
         <div class="settings-section">
           <h3>📱 Plantillas WhatsApp</h3>
           <p class="section-description">Personaliza los mensajes para los links de WhatsApp</p>
-
-          <div class="form-group full-width">
-            <label>Mensaje de Bienvenida</label>
-            <textarea [(ngModel)]="notificationSettings.whatsappWelcomeTemplate" rows="4"></textarea>
-            <span class="form-hint">Variables: &#123;nombre&#125;, &#123;usuario&#125;, &#123;password&#125;, &#123;url&#125;</span>          </div>
-
-          <div class="form-group full-width">
-            <label>Mensaje de Vencimiento Próximo</label>
-            <textarea [(ngModel)]="notificationSettings.whatsappExpiringTemplate" rows="3"></textarea>
-            <span class="form-hint">Variables: &#123;nombre&#125;, &#123;curso&#125;, &#123;dias&#125;, &#123;url&#125;</span>          </div>
-
-          <div class="form-group full-width">
-            <label>Mensaje de Acceso Vencido</label>
-            <textarea [(ngModel)]="notificationSettings.whatsappExpiredTemplate" rows="3"></textarea>
-            <span class="form-hint">Variables: &#123;nombre&#125;, &#123;curso&#125;, &#123;url&#125;</span>          </div>
-
-          <div class="form-group full-width">
-            <label>Plantilla para Envío Masivo</label>
-            <textarea [(ngModel)]="notificationSettings.whatsappMassiveTemplate" rows="3"></textarea>
-            <span class="form-hint">Variables: &#123;nombre&#125;, &#123;mensaje&#125;</span>          </div>
+          <div class="form-group full-width"><label>Mensaje de Bienvenida</label><textarea [(ngModel)]="notificationSettings.whatsappWelcomeTemplate" rows="4"></textarea><span class="form-hint">Variables: &#123;nombre&#125;, &#123;usuario&#125;, &#123;password&#125;, &#123;url&#125;</span></div>
+          <div class="form-group full-width"><label>Mensaje de Vencimiento Próximo</label><textarea [(ngModel)]="notificationSettings.whatsappExpiringTemplate" rows="3"></textarea><span class="form-hint">Variables: &#123;nombre&#125;, &#123;curso&#125;, &#123;dias&#125;, &#123;url&#125;</span></div>
+          <div class="form-group full-width"><label>Mensaje de Acceso Vencido</label><textarea [(ngModel)]="notificationSettings.whatsappExpiredTemplate" rows="3"></textarea><span class="form-hint">Variables: &#123;nombre&#125;, &#123;curso&#125;, &#123;url&#125;</span></div>
+          <div class="form-group full-width"><label>Plantilla para Envío Masivo</label><textarea [(ngModel)]="notificationSettings.whatsappMassiveTemplate" rows="3"></textarea><span class="form-hint">Variables: &#123;nombre&#125;, &#123;mensaje&#125;</span></div>
         </div>
-
         <div class="form-error" *ngIf="settingsError">{{ settingsError }}</div>
-
         <div class="settings-actions">
-          <button class="btn-primary" (click)="saveNotificationSettings()" [disabled]="settingsLoading">
-            💾 Guardar Configuración
-          </button>
+          <button class="btn-primary" (click)="saveNotificationSettings()" [disabled]="settingsLoading">💾 Guardar Configuración</button>
         </div>
       </div>
 
-      <!-- ========== TAB: ENVÍO MASIVO ========== -->
+      <!-- TAB: ENVÍO MASIVO -->
       <div class="settings-content" *ngIf="settingsTab === 'massive'">
         <div class="settings-section">
           <h3>📤 Envío Masivo</h3>
-
-          <!-- Tabs Email/WhatsApp -->
           <div class="massive-tabs">
-            <button class="massive-tab" [class.active]="massiveTab === 'email'" (click)="massiveTab = 'email'">
-              📧 Email
-            </button>
-            <button class="massive-tab" [class.active]="massiveTab === 'whatsapp'" (click)="massiveTab = 'whatsapp'">
-              📱 WhatsApp
-            </button>
+            <button class="massive-tab" [class.active]="massiveTab === 'email'" (click)="massiveTab = 'email'">📧 Email</button>
+            <button class="massive-tab" [class.active]="massiveTab === 'whatsapp'" (click)="massiveTab = 'whatsapp'">📱 WhatsApp</button>
           </div>
-
-          <!-- Selección de usuarios -->
           <div class="user-selection">
             <div class="selection-header">
-              <label class="toggle-label">
-                <input type="checkbox" [checked]="selectAllForMassive" (change)="toggleSelectAll()" />
-                <span class="toggle-switch"></span>
-                <span>{{ selectAllForMassive ? 'Deseleccionar todos' : 'Seleccionar todos' }}</span>
-              </label>
+              <label class="toggle-label"><input type="checkbox" [checked]="selectAllForMassive" (change)="toggleSelectAll()" /><span class="toggle-switch"></span><span>{{ selectAllForMassive ? 'Deseleccionar todos' : 'Seleccionar todos' }}</span></label>
               <span class="selected-count">{{ selectedUsersForMassive.length }} seleccionados</span>
             </div>
-
             <div class="users-grid">
-              <div class="user-checkbox" *ngFor="let student of students"
-                   [class.selected]="isUserSelected(student.id)"
-                   (click)="toggleUserSelection(student.id)">
+              <div class="user-checkbox" *ngFor="let student of students" [class.selected]="isUserSelected(student.id)" (click)="toggleUserSelection(student.id)">
                 <input type="checkbox" [checked]="isUserSelected(student.id)" />
                 <div class="user-info">
                   <span class="user-name">{{ student.fullName }}</span>
@@ -849,564 +690,297 @@
               </div>
             </div>
           </div>
-
-          <!-- Formulario de mensaje -->
           <div class="message-form">
-            <div class="form-group" *ngIf="massiveTab === 'email'">
-              <label>Asunto del Correo *</label>
-              <input type="text" [(ngModel)]="massiveSubject" placeholder="Asunto del mensaje" />
-            </div>
-
-            <div class="form-group">
-              <label>Mensaje *</label>
-              <textarea [(ngModel)]="massiveMessage" rows="5"
-                        placeholder="Escribe tu mensaje aquí... Usa {nombre} para personalizar"></textarea>
-            </div>
-
-            <!-- Botón de envío -->
+            <div class="form-group" *ngIf="massiveTab === 'email'"><label>Asunto del Correo *</label><input type="text" [(ngModel)]="massiveSubject" placeholder="Asunto del mensaje" /></div>
+            <div class="form-group"><label>Mensaje *</label><textarea [(ngModel)]="massiveMessage" rows="5" placeholder="Escribe tu mensaje aquí... Usa {nombre} para personalizar"></textarea></div>
             <div class="massive-actions">
-              <button class="btn-primary" *ngIf="massiveTab === 'email'"
-                      (click)="sendMassiveEmail()" [disabled]="massiveSending">
-                {{ massiveSending ? 'Enviando...' : '📧 Enviar Correos' }}
-              </button>
-
-              <button class="btn-primary" *ngIf="massiveTab === 'whatsapp'"
-                      (click)="generateWhatsAppLinks()" [disabled]="whatsappLinksLoading">
-                {{ whatsappLinksLoading ? 'Generando...' : '📱 Generar Links de WhatsApp' }}
-              </button>
+              <button class="btn-primary" *ngIf="massiveTab === 'email'" (click)="sendMassiveEmail()" [disabled]="massiveSending">{{ massiveSending ? 'Enviando...' : '📧 Enviar Correos' }}</button>
+              <button class="btn-primary" *ngIf="massiveTab === 'whatsapp'" (click)="generateWhatsAppLinks()" [disabled]="whatsappLinksLoading">{{ whatsappLinksLoading ? 'Generando...' : '📱 Generar Links de WhatsApp' }}</button>
             </div>
           </div>
-
-          <!-- Resultado de envío masivo de email -->
           <div class="massive-result" *ngIf="massiveResult">
-            <div class="result-card success">
-              <span class="result-icon">✅</span>
-              <span class="result-text">{{ massiveResult.sent }} correos enviados</span>
-            </div>
-            <div class="result-card error" *ngIf="massiveResult.failed > 0">
-              <span class="result-icon">❌</span>
-              <span class="result-text">{{ massiveResult.failed }} fallidos</span>
-            </div>
+            <div class="result-card success"><span class="result-icon">✅</span><span class="result-text">{{ massiveResult.sent }} correos enviados</span></div>
+            <div class="result-card error" *ngIf="massiveResult.failed > 0"><span class="result-icon">❌</span><span class="result-text">{{ massiveResult.failed }} fallidos</span></div>
           </div>
-
-          <!-- Links de WhatsApp generados -->
           <div class="whatsapp-links" *ngIf="whatsappLinks.length > 0">
             <h4>📱 Links Generados ({{ whatsappLinks.length }})</h4>
             <p class="links-hint">Haz clic en cada link para abrir WhatsApp y enviar el mensaje</p>
-
             <div class="links-grid">
               <div class="link-card" *ngFor="let link of whatsappLinks">
-                <div class="link-info">
-                  <span class="link-name">{{ link.fullName }}</span>
-                  <span class="link-phone">{{ link.phone }}</span>
-                </div>
-                <a [href]="link.whatsappLink" target="_blank" class="btn-whatsapp">
-                  Enviar 📱
-                </a>
+                <div class="link-info"><span class="link-name">{{ link.fullName }}</span><span class="link-phone">{{ link.phone }}</span></div>
+                <a [href]="link.whatsappLink" target="_blank" class="btn-whatsapp">Enviar 📱</a>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ========== TAB: POR VENCER ========== -->
+      <!-- TAB: POR VENCER -->
       <div class="settings-content" *ngIf="settingsTab === 'expiring'">
         <div class="settings-section">
           <h3>⏰ Cursos Por Vencer</h3>
-
           <div class="expiry-controls">
-            <div class="form-group inline">
-              <label>Mostrar cursos que vencen en:</label>
-              <input type="number" [(ngModel)]="expiryDaysFilter" min="1" max="90" />
-              <span>días</span>
-            </div>
-            <button class="btn-secondary" (click)="loadExpiringCourses()" [disabled]="expiryLoading">
-              🔄 Actualizar
-            </button>
-            <button class="btn-primary" (click)="notifyExpiringUsers()" [disabled]="expiryLoading || expiringUsers.length === 0">
-              📧 Notificar a Todos
-            </button>
+            <div class="form-group inline"><label>Mostrar cursos que vencen en:</label><input type="number" [(ngModel)]="expiryDaysFilter" min="1" max="90" /><span>días</span></div>
+            <button class="btn-secondary" (click)="loadExpiringCourses()" [disabled]="expiryLoading">🔄 Actualizar</button>
+            <button class="btn-primary" (click)="notifyExpiringUsers()" [disabled]="expiryLoading || expiringUsers.length === 0">📧 Notificar a Todos</button>
           </div>
-
-          <!-- Loading -->
-          <div class="loading-inline" *ngIf="expiryLoading">
-            <div class="spinner-small"></div>
-            <span>Cargando...</span>
-          </div>
-
-          <!-- Usuarios con cursos por vencer -->
+          <div class="loading-inline" *ngIf="expiryLoading"><div class="spinner-small"></div><span>Cargando...</span></div>
           <div class="expiry-section" *ngIf="!expiryLoading && expiringUsers.length > 0">
             <h4>⚠️ Por Vencer ({{ expiringUsers.length }})</h4>
             <div class="expiry-table">
-              <div class="expiry-row header">
-                <span>Estudiante</span>
-                <span>Curso</span>
-                <span>Vence en</span>
-                <span>Acciones</span>
-              </div>
+              <div class="expiry-row header"><span>Estudiante</span><span>Curso</span><span>Vence en</span><span>Acciones</span></div>
               <div class="expiry-row" *ngFor="let user of expiringUsers">
                 <span class="expiry-name">{{ user.fullName }}</span>
                 <span class="expiry-course">{{ user.courseName }}</span>
                 <span class="expiry-days" [class.urgent]="user.daysLeft <= 3">{{ user.daysLeft }} días</span>
                 <div class="expiry-actions">
-                  <a *ngIf="user.phone" [href]="getWhatsAppLinkForUser(user.phone, 'Hola ' + user.fullName + ', tu acceso al curso ' + user.courseName + ' vence en ' + user.daysLeft + ' días.')"
-                     target="_blank" class="action-link whatsapp">📱</a>
+                  <a *ngIf="user.phone" [href]="getWhatsAppLinkForUser(user.phone, 'Hola ' + user.fullName + ', tu acceso al curso ' + user.courseName + ' vence en ' + user.daysLeft + ' días.')" target="_blank" class="action-link whatsapp">📱</a>
                 </div>
               </div>
             </div>
           </div>
-
-          <div class="empty-state-small" *ngIf="!expiryLoading && expiringUsers.length === 0">
-            ✅ No hay cursos por vencer en los próximos {{ expiryDaysFilter }} días
-          </div>
-
-          <!-- Usuarios con cursos vencidos -->
+          <div class="empty-state-small" *ngIf="!expiryLoading && expiringUsers.length === 0">✅ No hay cursos por vencer en los próximos {{ expiryDaysFilter }} días</div>
           <div class="expiry-section expired" *ngIf="!expiryLoading && expiredUsers.length > 0">
             <h4>❌ Ya Vencidos ({{ expiredUsers.length }})</h4>
             <div class="expiry-table">
-              <div class="expiry-row header">
-                <span>Estudiante</span>
-                <span>Curso</span>
-                <span>Venció</span>
-                <span>Acciones</span>
-              </div>
+              <div class="expiry-row header"><span>Estudiante</span><span>Curso</span><span>Venció</span><span>Acciones</span></div>
               <div class="expiry-row" *ngFor="let user of expiredUsers">
                 <span class="expiry-name">{{ user.fullName }}</span>
                 <span class="expiry-course">{{ user.courseName }}</span>
                 <span class="expiry-date">{{ formatDate(user.expiresAt) }}</span>
                 <div class="expiry-actions">
-                  <a *ngIf="user.phone" [href]="getWhatsAppLinkForUser(user.phone, 'Hola ' + user.fullName + ', tu acceso al curso ' + user.courseName + ' ha vencido. ¡Renueva para seguir aprendiendo!')"
-                     target="_blank" class="action-link whatsapp">📱</a>
+                  <a *ngIf="user.phone" [href]="getWhatsAppLinkForUser(user.phone, 'Hola ' + user.fullName + ', tu acceso al curso ' + user.courseName + ' ha vencido. ¡Renueva para seguir aprendiendo!')" target="_blank" class="action-link whatsapp">📱</a>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
     </div>
 
-<!-- ============== MODAL: CREAR/EDITAR ESTUDIANTE ============== -->
-<div class="modal-overlay" *ngIf="showStudentModal" (click)="closeStudentModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>{{ editingStudent ? 'Editar Estudiante' : 'Nuevo Estudiante' }}</h3>
-      <button class="close-btn" (click)="closeStudentModal()">×</button>
-    </div>
-    <form (ngSubmit)="saveStudent()">
-      <div class="form-group">
-        <label>Usuario *</label>
-        <input type="text" [(ngModel)]="studentForm.username" name="username" placeholder="usuario123" />
-      </div>
-      <div class="form-group">
-        <label>{{ editingStudent ? 'Nueva Contraseña (dejar vacío para mantener)' : 'Contraseña *' }}</label>
-        <input type="password" [(ngModel)]="studentForm.password" name="password" placeholder="••••••" />
-      </div>
-      <div class="form-group">
-        <label>Nombre Completo *</label>
-        <input type="text" [(ngModel)]="studentForm.fullName" name="fullName" placeholder="Juan Pérez" />
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" [(ngModel)]="studentForm.email" name="email" placeholder="correo@ejemplo.com" />
-      </div>
-      <div class="form-group">
-        <label>Teléfono</label>
-        <input type="text" [(ngModel)]="studentForm.phone" name="phone" placeholder="999888777" />
-      </div>
-      <div class="form-error" *ngIf="studentFormError">{{ studentFormError }}</div>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" (click)="closeStudentModal()">Cancelar</button>
-        <button type="submit" class="btn-primary" [disabled]="isLoading">
-          {{ isLoading ? 'Guardando...' : 'Guardar' }}
-        </button>
-      </div>
-    </form>
   </div>
-</div>
+  <!-- FIN de admin-main -->
 
-<!-- ============== MODAL: ASIGNAR CURSO ============== -->
-<div class="modal-overlay" *ngIf="showAssignModal" (click)="closeAssignModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>Asignar Curso</h3>
-      <button class="close-btn" (click)="closeAssignModal()">×</button>
+  <!-- ============== MODALES (fuera de admin-main) ============== -->
+
+  <!-- MODAL: CREAR/EDITAR ESTUDIANTE -->
+  <div class="modal-overlay" *ngIf="showStudentModal" (click)="closeStudentModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingStudent ? 'Editar Estudiante' : 'Nuevo Estudiante' }}</h3>
+        <button class="close-btn" (click)="closeStudentModal()">×</button>
+      </div>
+      <form (ngSubmit)="saveStudent()">
+        <div class="form-group"><label>Usuario *</label><input type="text" [(ngModel)]="studentForm.username" name="username" placeholder="usuario123" /></div>
+        <div class="form-group"><label>{{ editingStudent ? 'Nueva Contraseña (dejar vacío para mantener)' : 'Contraseña *' }}</label><input type="password" [(ngModel)]="studentForm.password" name="password" placeholder="••••••" /></div>
+        <div class="form-group"><label>Nombre Completo *</label><input type="text" [(ngModel)]="studentForm.fullName" name="fullName" placeholder="Juan Pérez" /></div>
+        <div class="form-group"><label>Email</label><input type="email" [(ngModel)]="studentForm.email" name="email" placeholder="correo@ejemplo.com" /></div>
+        <div class="form-group"><label>Teléfono</label><input type="text" [(ngModel)]="studentForm.phone" name="phone" placeholder="999888777" /></div>
+        <div class="form-error" *ngIf="studentFormError">{{ studentFormError }}</div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeStudentModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading">{{ isLoading ? 'Guardando...' : 'Guardar' }}</button>
+        </div>
+      </form>
     </div>
-    <p class="modal-subtitle">Estudiante: <strong>{{ selectedStudent?.fullName }}</strong></p>
-    <form (ngSubmit)="assignCourse()">
-      <div class="form-group">
-        <label>Curso *</label>
-        <select [(ngModel)]="assignForm.courseId" name="courseId">
-          <option *ngFor="let course of courses" [value]="course.id">{{ course.title }}</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Tipo de Plan *</label>
-        <select [(ngModel)]="assignForm.planType" name="planType">
-          <option value="UNLIMITED">Ilimitado (acceso permanente)</option>
-          <option value="TEMPORAL">Temporal (por tiempo limitado)</option>
-        </select>
-      </div>
+  </div>
 
-      <!-- Opciones de duración temporal -->
-      <div class="duration-options" *ngIf="assignForm.planType === 'TEMPORAL'">
-        <div class="form-group">
-          <label>Tipo de Duración *</label>
-          <div class="duration-type-selector">
-            <button type="button"
-                    class="duration-type-btn"
-                    [class.active]="durationType === 'days'"
-                    (click)="durationType = 'days'">
-              📅 Días
-            </button>
-            <button type="button"
-                    class="duration-type-btn"
-                    [class.active]="durationType === 'months'"
-                    (click)="durationType = 'months'">
-              🗓️ Meses
-            </button>
+  <!-- MODAL: ASIGNAR CURSO -->
+  <div class="modal-overlay" *ngIf="showAssignModal" (click)="closeAssignModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Asignar Curso</h3>
+        <button class="close-btn" (click)="closeAssignModal()">×</button>
+      </div>
+      <p class="modal-subtitle">Estudiante: <strong>{{ selectedStudent?.fullName }}</strong></p>
+      <form (ngSubmit)="assignCourse()">
+        <div class="form-group"><label>Curso *</label><select [(ngModel)]="assignForm.courseId" name="courseId"><option *ngFor="let course of courses" [value]="course.id">{{ course.title }}</option></select></div>
+        <div class="form-group"><label>Tipo de Plan *</label><select [(ngModel)]="assignForm.planType" name="planType"><option value="UNLIMITED">Ilimitado (acceso permanente)</option><option value="TEMPORAL">Temporal (por tiempo limitado)</option></select></div>
+        <div class="duration-options" *ngIf="assignForm.planType === 'TEMPORAL'">
+          <div class="form-group"><label>Tipo de Duración *</label>
+            <div class="duration-type-selector">
+              <button type="button" class="duration-type-btn" [class.active]="durationType === 'days'" (click)="durationType = 'days'">📅 Días</button>
+              <button type="button" class="duration-type-btn" [class.active]="durationType === 'months'" (click)="durationType = 'months'">🗓️ Meses</button>
+            </div>
+          </div>
+          <div class="form-group" *ngIf="durationType === 'days'"><label>Duración (días) *</label><input type="number" [(ngModel)]="durationDays" name="durationDays" min="1" max="365" placeholder="Ej: 7, 15, 30" /><span class="form-hint">Mínimo 1 día, máximo 365 días</span></div>
+          <div class="form-group" *ngIf="durationType === 'months'"><label>Duración (meses) *</label><input type="number" [(ngModel)]="assignForm.durationMonths" name="durationMonths" min="1" max="24" /><span class="form-hint">Mínimo 1 mes, máximo 24 meses</span></div>
+        </div>
+        <div class="payment-section">
+          <h4 class="section-title">💰 Registro de Pago</h4>
+          <div class="form-row">
+            <div class="form-group"><label>Monto Cobrado</label><input type="number" [(ngModel)]="paymentAmount" name="paymentAmount" min="0" step="0.01" placeholder="0.00" /><span class="form-hint">Dejar en 0 si es gratis</span></div>
+            <div class="form-group form-group-sm"><label>Moneda</label><select [(ngModel)]="paymentCurrency" name="paymentCurrency"><option value="PEN">S/. Soles</option><option value="USD">$ Dólares</option></select></div>
           </div>
         </div>
-
-        <!-- Input para días -->
-        <div class="form-group" *ngIf="durationType === 'days'">
-          <label>Duración (días) *</label>
-          <input type="number" [(ngModel)]="durationDays" name="durationDays" min="1" max="365" placeholder="Ej: 7, 15, 30" />
-          <span class="form-hint">Mínimo 1 día, máximo 365 días</span>
+        <div class="form-error" *ngIf="assignFormError">{{ assignFormError }}</div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeAssignModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading">{{ isLoading ? 'Asignando...' : 'Asignar Curso' }}</button>
         </div>
+      </form>
+    </div>
+  </div>
 
-        <!-- Input para meses -->
-        <div class="form-group" *ngIf="durationType === 'months'">
-          <label>Duración (meses) *</label>
-          <input type="number" [(ngModel)]="assignForm.durationMonths" name="durationMonths" min="1" max="24" />
-          <span class="form-hint">Mínimo 1 mes, máximo 24 meses</span>
-        </div>
+  <!-- MODAL: CAMBIAR CONTRASEÑA -->
+  <div class="modal-overlay" *ngIf="showPasswordModal" (click)="closePasswordModal()">
+    <div class="modal-content modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Cambiar Contraseña</h3>
+        <button class="close-btn" (click)="closePasswordModal()">×</button>
       </div>
+      <p class="modal-subtitle">Usuario: <strong>{{ passwordStudent?.username }}</strong></p>
+      <form (ngSubmit)="savePassword()">
+        <div class="form-group"><label>Nueva Contraseña *</label><input type="password" [(ngModel)]="newPassword" name="newPassword" placeholder="Mínimo 6 caracteres" /></div>
+        <div class="form-error" *ngIf="passwordError">{{ passwordError }}</div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closePasswordModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading">{{ isLoading ? 'Guardando...' : 'Cambiar' }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-      <!-- Sección de pago -->
-      <div class="payment-section">
-        <h4 class="section-title">💰 Registro de Pago</h4>
+  <!-- MODAL: SUBIR/EDITAR VIDEO -->
+  <div class="modal-overlay" *ngIf="showVideoModal" (click)="closeVideoModal()">
+    <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingVideo ? 'Editar Video' : 'Subir Nuevo Video' }}</h3>
+        <button class="close-btn" (click)="closeVideoModal()" [disabled]="isUploading">×</button>
+      </div>
+      <div class="upload-progress-container" *ngIf="isUploading">
+        <div class="upload-progress-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span>{{ uploadProgress.message }}</span>
+        </div>
+        <div class="upload-progress-bar"><div class="upload-progress-fill" [style.width.%]="uploadProgress.progress"></div></div>
+        <div class="upload-progress-percent">{{ uploadProgress.progress }}%</div>
+      </div>
+      <form (ngSubmit)="saveVideo()" *ngIf="!isUploading">
+        <div class="form-group" *ngIf="!editingVideo">
+          <label>Archivo de Video *</label>
+          <div class="ios-warning" *ngIf="isIOS && !selectedVideoFile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span><strong>iPhone/iPad:</strong> Si tienes problemas, selecciona el video desde la app "Archivos" en vez de Fotos.</span>
+          </div>
+          <div class="file-upload-zone" (click)="openFileSelector(fileInput)" [class.has-file]="selectedVideoFile">
+            <input type="file" #fileInput (change)="onVideoFileSelected($event)" accept="video/*" style="display: none" />
+            <div class="file-upload-content" *ngIf="!selectedVideoFile">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <p>Toca para seleccionar un video</p>
+              <span>MP4, WebM, MOV o AVI (máx. 15GB)</span>
+            </div>
+            <div class="file-selected" *ngIf="selectedVideoFile">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+              <div class="file-info"><p class="file-name">{{ selectedVideoFile.name }}</p><span class="file-size">{{ formatFileSize(selectedVideoFile.size) }}</span></div>
+              <button type="button" class="change-file-btn" (click)="$event.stopPropagation(); openFileSelector(fileInput)">Cambiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="current-video-info" *ngIf="editingVideo">
+          <label>Video actual</label>
+          <div class="video-id-display">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            <span>ID: {{ editingVideo.videoUrl }}</span>
+          </div>
+          <div class="form-group" style="margin-top: 1rem;">
+            <label>Reemplazar video (opcional)</label>
+            <div class="file-upload-zone small" (click)="replaceFileInput.click()">
+              <input type="file" #replaceFileInput (change)="onVideoFileSelected($event)" accept="video/mp4,video/webm,video/quicktime,video/x-msvideo" style="display: none" />
+              <span *ngIf="!selectedVideoFile">Clic para seleccionar nuevo video</span>
+              <span *ngIf="selectedVideoFile">{{ selectedVideoFile.name }} ({{ formatFileSize(selectedVideoFile.size) }})</span>
+            </div>
+          </div>
+        </div>
         <div class="form-row">
-          <div class="form-group">
-            <label>Monto Cobrado</label>
-            <input type="number" [(ngModel)]="paymentAmount" name="paymentAmount" min="0" step="0.01" placeholder="0.00" />
-            <span class="form-hint">Dejar en 0 si es gratis</span>
-          </div>
-          <div class="form-group form-group-sm">
-            <label>Moneda</label>
-            <select [(ngModel)]="paymentCurrency" name="paymentCurrency">
-              <option value="PEN">S/. Soles</option>
-              <option value="USD">$ Dólares</option>
-            </select>
-          </div>
+          <div class="form-group"><label>Título *</label><input type="text" [(ngModel)]="videoForm.title" name="title" placeholder="Ej: Corte Clásico - Técnica Básica" /></div>
+          <div class="form-group form-group-sm"><label>Tipo *</label><select [(ngModel)]="videoForm.type" name="type"><option value="PRACTICE">Práctica</option><option value="THEORY">Teoría</option></select></div>
         </div>
-      </div>
-
-      <div class="form-error" *ngIf="assignFormError">{{ assignFormError }}</div>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" (click)="closeAssignModal()">Cancelar</button>
-        <button type="submit" class="btn-primary" [disabled]="isLoading">
-          {{ isLoading ? 'Asignando...' : 'Asignar Curso' }}
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- ============== MODAL: CAMBIAR CONTRASEÑA ============== -->
-<div class="modal-overlay" *ngIf="showPasswordModal" (click)="closePasswordModal()">
-  <div class="modal-content modal-sm" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>Cambiar Contraseña</h3>
-      <button class="close-btn" (click)="closePasswordModal()">×</button>
+        <div class="form-row">
+          <div class="form-group"><label>Duración</label><input type="text" [(ngModel)]="videoForm.duration" name="duration" placeholder="Ej: 15:30" /></div>
+          <div class="form-group"><label>Orden</label><input type="number" [(ngModel)]="videoForm.orderIndex" name="orderIndex" min="0" /><span class="form-hint">Menor número = aparece primero</span></div>
+        </div>
+        <div class="form-group"><label>Descripción (opcional)</label><textarea [(ngModel)]="videoForm.description" name="description" rows="2" placeholder="Breve descripción del contenido del video"></textarea></div>
+        <div class="form-group">
+          <label>Thumbnail (opcional)</label>
+          <div class="thumbnail-upload-zone" (click)="thumbnailInput.click()" [class.has-file]="selectedThumbnailFile || thumbnailPreview">
+            <input type="file" #thumbnailInput (change)="onThumbnailSelected($event)" accept="image/jpeg,image/png,image/webp" style="display: none" />
+            <div class="thumbnail-upload-content" *ngIf="!selectedThumbnailFile && !thumbnailPreview">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <p>Clic para subir thumbnail</p>
+              <span>JPG, PNG o WebP (recomendado: 1280x720)</span>
+            </div>
+            <div class="thumbnail-preview" *ngIf="selectedThumbnailFile || thumbnailPreview">
+              <img [src]="thumbnailPreview" alt="Thumbnail preview" />
+              <div class="thumbnail-overlay">
+                <button type="button" class="change-thumbnail-btn" (click)="$event.stopPropagation(); thumbnailInput.click()">Cambiar</button>
+                <button type="button" class="remove-thumbnail-btn" (click)="$event.stopPropagation(); removeThumbnail()">Quitar</button>
+              </div>
+            </div>
+          </div>
+          <span class="form-hint">Si no subes un thumbnail, se usará un frame automático del video</span>
+        </div>
+        <div class="form-error" *ngIf="videoFormError">{{ videoFormError }}</div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeVideoModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading || isUploading">{{ editingVideo ? 'Guardar Cambios' : 'Subir Video' }}</button>
+        </div>
+      </form>
     </div>
-    <p class="modal-subtitle">Usuario: <strong>{{ passwordStudent?.username }}</strong></p>
-    <form (ngSubmit)="savePassword()">
-      <div class="form-group">
-        <label>Nueva Contraseña *</label>
-        <input type="password" [(ngModel)]="newPassword" name="newPassword" placeholder="Mínimo 6 caracteres" />
-      </div>
-      <div class="form-error" *ngIf="passwordError">{{ passwordError }}</div>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" (click)="closePasswordModal()">Cancelar</button>
-        <button type="submit" class="btn-primary" [disabled]="isLoading">
-          {{ isLoading ? 'Guardando...' : 'Cambiar' }}
-        </button>
-      </div>
-    </form>
   </div>
-</div>
 
-<!-- ============== MODAL: SUBIR/EDITAR VIDEO ============== -->
-<div class="modal-overlay" *ngIf="showVideoModal" (click)="closeVideoModal()">
-  <div class="modal-content modal-lg" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>{{ editingVideo ? 'Editar Video' : 'Subir Nuevo Video' }}</h3>
-      <button class="close-btn" (click)="closeVideoModal()" [disabled]="isUploading">×</button>
-    </div>
-
-    <!-- Upload Progress -->
-    <div class="upload-progress-container" *ngIf="isUploading">
-      <div class="upload-progress-header">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-          <polyline points="17 8 12 3 7 8"></polyline>
-          <line x1="12" y1="3" x2="12" y2="15"></line>
+  <!-- MODAL: SESIÓN ACTIVA (FUERA de admin-main para que se muestre sin autenticación) -->
+  <div class="modal-overlay session-modal-overlay" *ngIf="showSessionModal">
+    <div class="modal-content session-modal" (click)="$event.stopPropagation()">
+      <div class="session-modal-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
-        <span>{{ uploadProgress.message }}</span>
       </div>
-      <div class="upload-progress-bar">
-        <div class="upload-progress-fill" [style.width.%]="uploadProgress.progress"></div>
-      </div>
-      <div class="upload-progress-percent">{{ uploadProgress.progress }}%</div>
-    </div>
-
-    <form (ngSubmit)="saveVideo()" *ngIf="!isUploading">
-      <!-- Archivo de video -->
-      <div class="form-group" *ngIf="!editingVideo">
-        <label>Archivo de Video *</label>
-
-        <!-- Mensaje de advertencia para iOS -->
-        <div class="ios-warning" *ngIf="isIOS && !selectedVideoFile">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-          <span><strong>iPhone/iPad:</strong> Si tienes problemas, selecciona el video desde la app "Archivos" en vez de Fotos.</span>
-        </div>
-
-        <div class="file-upload-zone"
-             (click)="openFileSelector(fileInput)"
-             [class.has-file]="selectedVideoFile">
-          <!-- Input simplificado para mejor compatibilidad iOS -->
-          <input
-            type="file"
-            #fileInput
-            (change)="onVideoFileSelected($event)"
-            accept="video/*"
-            style="display: none"
-          />
-          <div class="file-upload-content" *ngIf="!selectedVideoFile">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="17 8 12 3 7 8"></polyline>
-              <line x1="12" y1="3" x2="12" y2="15"></line>
-            </svg>
-            <p>Toca para seleccionar un video</p>
-            <span>MP4, WebM, MOV o AVI (máx. 15GB)</span>
-          </div>
-          <div class="file-selected" *ngIf="selectedVideoFile">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <polygon points="23 7 16 12 23 17 23 7"></polygon>
-              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-            </svg>
-            <div class="file-info">
-              <p class="file-name">{{ selectedVideoFile.name }}</p>
-              <span class="file-size">{{ formatFileSize(selectedVideoFile.size) }}</span>
-            </div>
-            <button type="button" class="change-file-btn" (click)="$event.stopPropagation(); openFileSelector(fileInput)">
-              Cambiar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Info del video actual (si está editando) -->
-      <div class="current-video-info" *ngIf="editingVideo">
-        <label>Video actual</label>
-        <div class="video-id-display">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <polygon points="23 7 16 12 23 17 23 7"></polygon>
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-          </svg>
-          <span>ID: {{ editingVideo.videoUrl }}</span>
-        </div>
-        <div class="form-group" style="margin-top: 1rem;">
-          <label>Reemplazar video (opcional)</label>
-          <div class="file-upload-zone small" (click)="replaceFileInput.click()">
-            <input
-              type="file"
-              #replaceFileInput
-              (change)="onVideoFileSelected($event)"
-              accept="video/mp4,video/webm,video/quicktime,video/x-msvideo"
-              style="display: none"
-            />
-            <span *ngIf="!selectedVideoFile">Clic para seleccionar nuevo video</span>
-            <span *ngIf="selectedVideoFile">{{ selectedVideoFile.name }} ({{ formatFileSize(selectedVideoFile.size) }})</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Título *</label>
-          <input type="text" [(ngModel)]="videoForm.title" name="title" placeholder="Ej: Corte Clásico - Técnica Básica" />
-        </div>
-        <div class="form-group form-group-sm">
-          <label>Tipo *</label>
-          <select [(ngModel)]="videoForm.type" name="type">
-            <option value="PRACTICE">Práctica</option>
-            <option value="THEORY">Teoría</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Duración</label>
-          <input type="text" [(ngModel)]="videoForm.duration" name="duration" placeholder="Ej: 15:30" />
-        </div>
-        <div class="form-group">
-          <label>Orden</label>
-          <input type="number" [(ngModel)]="videoForm.orderIndex" name="orderIndex" min="0" />
-          <span class="form-hint">Menor número = aparece primero</span>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Descripción (opcional)</label>
-        <textarea [(ngModel)]="videoForm.description" name="description" rows="2"
-                  placeholder="Breve descripción del contenido del video"></textarea>
-      </div>
-
-      <!-- Thumbnail personalizado -->
-      <div class="form-group">
-        <label>Thumbnail (opcional)</label>
-        <div class="thumbnail-upload-zone" (click)="thumbnailInput.click()" [class.has-file]="selectedThumbnailFile || thumbnailPreview">
-          <input
-            type="file"
-            #thumbnailInput
-            (change)="onThumbnailSelected($event)"
-            accept="image/jpeg,image/png,image/webp"
-            style="display: none"
-          />
-          <div class="thumbnail-upload-content" *ngIf="!selectedThumbnailFile && !thumbnailPreview">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <circle cx="8.5" cy="8.5" r="1.5"></circle>
-              <polyline points="21 15 16 10 5 21"></polyline>
-            </svg>
-            <p>Clic para subir thumbnail</p>
-            <span>JPG, PNG o WebP (recomendado: 1280x720)</span>
-          </div>
-          <div class="thumbnail-preview" *ngIf="selectedThumbnailFile || thumbnailPreview">
-            <img [src]="thumbnailPreview" alt="Thumbnail preview" />
-            <div class="thumbnail-overlay">
-              <button type="button" class="change-thumbnail-btn" (click)="$event.stopPropagation(); thumbnailInput.click()">
-                Cambiar
-              </button>
-              <button type="button" class="remove-thumbnail-btn" (click)="$event.stopPropagation(); removeThumbnail()">
-                Quitar
-              </button>
-            </div>
-          </div>
-        </div>
-        <span class="form-hint">Si no subes un thumbnail, se usará un frame automático del video</span>
-      </div>
-
-      <div class="form-error" *ngIf="videoFormError">{{ videoFormError }}</div>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" (click)="closeVideoModal()">Cancelar</button>
-        <button type="submit" class="btn-primary" [disabled]="isLoading || isUploading">
-          {{ editingVideo ? 'Guardar Cambios' : 'Subir Video' }}
+      <h3>Sesión Activa Detectada</h3>
+      <p class="session-text">Ya tienes una sesión iniciada en otro dispositivo. Si continúas, la sesión anterior se cerrará automáticamente.</p>
+      <div class="session-modal-actions">
+        <button class="btn-secondary" (click)="cancelForceLogin()">Cancelar</button>
+        <button class="btn-primary" (click)="confirmForceLogin()" [disabled]="isLoading">
+          {{ isLoading ? 'Cerrando...' : 'Cerrar y Continuar' }}
         </button>
       </div>
-    </form>
-  </div>
-</div>
-
-<!-- ============== MODAL: SESIÓN ACTIVA ============== -->
-<div class="modal-overlay session-modal-overlay" *ngIf="showSessionModal">
-  <div class="modal-content session-modal" (click)="$event.stopPropagation()">
-    <div class="session-modal-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-        <line x1="12" y1="9" x2="12" y2="13"></line>
-        <line x1="12" y1="17" x2="12.01" y2="17"></line>
-      </svg>
-    </div>
-    <h3>Sesión Activa Detectada</h3>
-    <p class="session-text">Ya tienes una sesión iniciada en otro dispositivo. Si continúas, la sesión anterior se cerrará automáticamente.</p>
-    <div class="session-modal-actions">
-      <button class="btn-secondary" (click)="cancelForceLogin()">Cancelar</button>
-      <button class="btn-primary" (click)="confirmForceLogin()" [disabled]="isLoading">
-        {{ isLoading ? 'Cerrando...' : 'Cerrar y Continuar' }}
-      </button>
     </div>
   </div>
-</div>
 
-<!-- ============== MODAL: EXTENDER ACCESO CON PAGO ============== -->
-<div class="modal-overlay" *ngIf="showExtendModal" (click)="closeExtendModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>🔄 Renovar Acceso</h3>
-      <button class="close-btn" (click)="closeExtendModal()">×</button>
-    </div>
-    <p class="modal-subtitle">Curso: <strong>{{ extendingUserCourse?.courseTitle }}</strong></p>
-    <form (ngSubmit)="extendAccessWithPayment()">
-
-      <!-- Tipo de duración -->
-      <div class="form-group">
-        <label>Tipo de Duración *</label>
-        <div class="duration-type-selector">
-          <button type="button"
-                  class="duration-type-btn"
-                  [class.active]="extendDurationType === 'days'"
-                  (click)="extendDurationType = 'days'">
-            📅 Días
-          </button>
-          <button type="button"
-                  class="duration-type-btn"
-                  [class.active]="extendDurationType === 'months'"
-                  (click)="extendDurationType = 'months'">
-            🗓️ Meses
-          </button>
-        </div>
+  <!-- MODAL: EXTENDER ACCESO CON PAGO -->
+  <div class="modal-overlay" *ngIf="showExtendModal" (click)="closeExtendModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🔄 Renovar Acceso</h3>
+        <button class="close-btn" (click)="closeExtendModal()">×</button>
       </div>
-
-      <!-- Input para días -->
-      <div class="form-group" *ngIf="extendDurationType === 'days'">
-        <label>Días a Extender *</label>
-        <input type="number" [(ngModel)]="extendForm.durationDays" name="extendDays" min="1" max="365" placeholder="Ej: 7, 15, 30" />
-      </div>
-
-      <!-- Input para meses -->
-      <div class="form-group" *ngIf="extendDurationType === 'months'">
-        <label>Meses a Extender *</label>
-        <input type="number" [(ngModel)]="extendForm.durationMonths" name="extendMonths" min="1" max="24" />
-      </div>
-
-      <!-- Sección de pago -->
-      <div class="payment-section">
-        <h4 class="section-title">💰 Registro de Pago</h4>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Monto Cobrado</label>
-            <input type="number" [(ngModel)]="extendForm.amount" name="extendAmount" min="0" step="0.01" placeholder="0.00" />
-            <span class="form-hint">Dejar en 0 si es gratis</span>
-          </div>
-          <div class="form-group form-group-sm">
-            <label>Moneda</label>
-            <select [(ngModel)]="extendForm.currency" name="extendCurrency">
-              <option value="PEN">S/. Soles</option>
-              <option value="USD">$ Dólares</option>
-            </select>
+      <p class="modal-subtitle">Curso: <strong>{{ extendingUserCourse?.courseTitle }}</strong></p>
+      <form (ngSubmit)="extendAccessWithPayment()">
+        <div class="form-group"><label>Tipo de Duración *</label>
+          <div class="duration-type-selector">
+            <button type="button" class="duration-type-btn" [class.active]="extendDurationType === 'days'" (click)="extendDurationType = 'days'">📅 Días</button>
+            <button type="button" class="duration-type-btn" [class.active]="extendDurationType === 'months'" (click)="extendDurationType = 'months'">🗓️ Meses</button>
           </div>
         </div>
-      </div>
-
-      <div class="form-error" *ngIf="extendFormError">{{ extendFormError }}</div>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" (click)="closeExtendModal()">Cancelar</button>
-        <button type="submit" class="btn-primary" [disabled]="isLoading">
-          {{ isLoading ? 'Procesando...' : 'Renovar Acceso' }}
-        </button>
-      </div>
-    </form>
+        <div class="form-group" *ngIf="extendDurationType === 'days'"><label>Días a Extender *</label><input type="number" [(ngModel)]="extendForm.durationDays" name="extendDays" min="1" max="365" placeholder="Ej: 7, 15, 30" /></div>
+        <div class="form-group" *ngIf="extendDurationType === 'months'"><label>Meses a Extender *</label><input type="number" [(ngModel)]="extendForm.durationMonths" name="extendMonths" min="1" max="24" /></div>
+        <div class="payment-section">
+          <h4 class="section-title">💰 Registro de Pago</h4>
+          <div class="form-row">
+            <div class="form-group"><label>Monto Cobrado</label><input type="number" [(ngModel)]="extendForm.amount" name="extendAmount" min="0" step="0.01" placeholder="0.00" /><span class="form-hint">Dejar en 0 si es gratis</span></div>
+            <div class="form-group form-group-sm"><label>Moneda</label><select [(ngModel)]="extendForm.currency" name="extendCurrency"><option value="PEN">S/. Soles</option><option value="USD">$ Dólares</option></select></div>
+          </div>
+        </div>
+        <div class="form-error" *ngIf="extendFormError">{{ extendFormError }}</div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeExtendModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading">{{ isLoading ? 'Procesando...' : 'Renovar Acceso' }}</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 
-  </div>
 </div>
