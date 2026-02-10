@@ -152,6 +152,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   emailConfigError = '';
   emailTestEmail = '';
   emailTestSending = false;
+  emailPasswordConfigured = false;
 
   // Configuración de notificaciones automáticas
   notificationSettings: NotificationSettings = {
@@ -1396,7 +1397,10 @@ export class AdminComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (config) => {
           if (config.configured) {
+            this.emailPasswordConfigured = !!(config as any).hasAppPassword;
             this.emailConfig = { ...this.emailConfig, ...config };
+            // No sobreescribir appPassword con undefined del GET
+            delete this.emailConfig.appPassword;
           }
           this.emailConfigLoading = false;
           this.cdr.detectChanges();
