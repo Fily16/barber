@@ -1322,6 +1322,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   getNextVideoOrder(): number {
     if (!this.selectedCourseForVideos) return 0;
     const allVideos = [
+      ...(this.selectedCourseForVideos.coverVideos || []),
       ...this.selectedCourseForVideos.theoryVideos,
       ...this.selectedCourseForVideos.practiceVideos
     ];
@@ -1335,6 +1336,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   getVideosForSelectedCourse(): VideoResponse[] {
     if (!this.selectedCourseForVideos) return [];
     return [
+      ...(this.selectedCourseForVideos.coverVideos || []),
       ...this.selectedCourseForVideos.theoryVideos,
       ...this.selectedCourseForVideos.practiceVideos
     ].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));

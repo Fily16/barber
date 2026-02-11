@@ -890,7 +890,8 @@
         </div>
         <div class="form-row">
           <div class="form-group"><label>Título *</label><input type="text" [(ngModel)]="videoForm.title" name="title" placeholder="Ej: Corte Clásico - Técnica Básica" /></div>
-          <div class="form-group form-group-sm"><label>Tipo *</label><select [(ngModel)]="videoForm.type" name="type"><option value="PRACTICE">Práctica</option><option value="THEORY">Teoría</option></select></div>
+          <div class="form-group form-group-sm"><label>Tipo *</label><select [(ngModel)]="videoForm.type" name="type"><option value="COVER">Portada</option>
+                <option value="PRACTICE">Práctica</option><option value="THEORY">Teoría</option></select></div>
         </div>
         <div class="form-row">
           <div class="form-group"><label>Duración</label><input type="text" [(ngModel)]="videoForm.duration" name="duration" placeholder="Ej: 15:30" /></div>

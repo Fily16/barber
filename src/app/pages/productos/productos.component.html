@@ -19,7 +19,23 @@
   <!-- Curso Principal -->
   <section class="curso-section">
     <div class="curso-card-main">
-      <a [routerLink]="['/curso', 'basic-training']" class="curso-image">
+
+      <!-- Video de Portada (Bunny Stream) -->
+      <div class="curso-video-cover" *ngIf="coverLoaded && coverVideoUrl">
+        <a [routerLink]="['/curso', 'basic-training']" class="cover-link">
+          <iframe
+            [src]="coverVideoUrl | safeUrl"
+            frameborder="0"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope"
+            loading="lazy"
+            class="cover-iframe">
+          </iframe>
+          <div class="cover-click-overlay"></div>
+        </a>
+      </div>
+
+      <!-- Fallback: Imagen estática si no hay video de portada -->
+      <a [routerLink]="['/curso', 'basic-training']" class="curso-image" *ngIf="!coverLoaded || !coverVideoUrl">
         <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800" alt="Basic Training" />
         <div class="curso-overlay">
           <span class="play-icon">
@@ -30,18 +46,13 @@
         </div>
       </a>
 
-      <!-- Detalles del curso -->
+      <!-- Detalles del curso (siempre visible) -->
       <div class="curso-info">
-        <div class="info-header" (click)="toggleDetails()">
+        <div class="info-header-static">
           <h3>Detalles del curso</h3>
-          <span class="toggle-arrow" [class.open]="showDetails">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </span>
         </div>
 
-        <div class="info-content" [class.open]="showDetails">
+        <div class="info-content-static">
           <p>
             Este curso es la introducción de entrenamiento básico que está diseñado para que aprendas el método utilizado por RaphlCuts con el cual ha generado resultados épicos! Que están plasmados en cada uno de los videos tutoriales, con información precisa para lograr la eficiencia que se requiere a la hora de cortar cabello masculino.
           </p>

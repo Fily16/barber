@@ -51,7 +51,7 @@ export interface CreateVideoRequest {
   videoUrl: string;
   thumbnailUrl?: string;
   duration?: string;
-  type: 'THEORY' | 'PRACTICE';
+  type: 'THEORY' | 'PRACTICE' | 'COVER';
   orderIndex?: number;
 }
 

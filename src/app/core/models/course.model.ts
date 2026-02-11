@@ -1,4 +1,4 @@
-export type VideoType = 'THEORY' | 'PRACTICE';
+export type VideoType = 'THEORY' | 'PRACTICE' | 'COVER';
 export type PlanType = 'UNLIMITED' | 'TEMPORAL';
 
 export interface VideoResponse {
@@ -21,6 +21,7 @@ export interface CourseResponse {
   active: boolean;
   orderIndex: number;
   totalVideos: number;
+  coverVideos: VideoResponse[];
   theoryVideos: VideoResponse[];
   practiceVideos: VideoResponse[];
 }
