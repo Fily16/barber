@@ -7,9 +7,7 @@ import { environment } from '../../../environments/environment';
 
 export interface EmailConfig {
   configured?: boolean;
-  hasAppPassword?: boolean;
   senderEmail: string;
-  appPassword?: string;
   senderName: string;
   enabled: boolean;
   logoUrl: string;

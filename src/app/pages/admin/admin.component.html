@@ -524,18 +524,13 @@
       <!-- TAB: CONFIGURACIÓN DE EMAIL -->
       <div class="settings-content" *ngIf="settingsTab === 'email-config' && !emailConfigLoading">
         <div class="settings-section">
-          <h3>📧 Configuración del Servidor de Correo</h3>
-          <p class="section-description">Configura el correo desde el cual se enviarán las notificaciones (Gmail)</p>
+          <h3>📧 Configuración del Correo</h3>
+          <p class="section-description">Los correos se envían mediante Mailjet. Solo configura el remitente y personalización.</p>
           <div class="form-grid">
             <div class="form-group">
               <label>Correo Emisor *</label>
               <input type="email" [(ngModel)]="emailConfig.senderEmail" placeholder="tucorreo@gmail.com" />
-            </div>
-            <div class="form-group">
-              <label>Contraseña de Aplicación *</label>
-              <input type="password" [(ngModel)]="emailConfig.appPassword" [placeholder]="emailPasswordConfigured ? '••••••••  (ya configurada)' : 'xxxx xxxx xxxx xxxx'" />
-              <span class="form-hint" *ngIf="emailPasswordConfigured" style="color: #4caf50;">✓ Contraseña guardada. Déjalo vacío para mantenerla o escribe una nueva para cambiarla.</span>
-              <span class="form-hint" *ngIf="!emailPasswordConfigured">Genera una en tu cuenta de Google → Seguridad → Contraseñas de aplicación</span>
+              <span class="form-hint">Debe estar verificado en tu cuenta de Mailjet</span>
             </div>
             <div class="form-group">
               <label>Nombre del Remitente</label>
