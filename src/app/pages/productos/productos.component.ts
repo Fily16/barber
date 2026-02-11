@@ -26,7 +26,7 @@ export class ProductosComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           const videoId = response.data.videoUrl;
-          this.coverVideoUrl = `https://iframe.mediadelivery.net/embed/590927/${videoId}?autoplay=true&loop=true&muted=false&preload=true&responsive=true`;
+          this.coverVideoUrl = `https://iframe.mediadelivery.net/embed/590927/${videoId}?autoplay=true&loop=true&muted=true&preload=true&responsive=true&controls=false`;
           this.coverLoaded = true;
         }
       },

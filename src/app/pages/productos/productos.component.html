@@ -22,16 +22,14 @@
 
       <!-- Video de Portada (Bunny Stream) -->
       <div class="curso-video-cover" *ngIf="coverLoaded && coverVideoUrl">
-        <a [routerLink]="['/curso', 'basic-training']" class="cover-link">
-          <iframe
-            [src]="coverVideoUrl | safeUrl"
-            frameborder="0"
-            allow="accelerometer; autoplay; encrypted-media; gyroscope"
-            loading="lazy"
-            class="cover-iframe">
-          </iframe>
-          <div class="cover-click-overlay"></div>
-        </a>
+        <iframe
+          [src]="coverVideoUrl | safeUrl"
+          frameborder="0"
+          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+          class="cover-iframe">
+        </iframe>
+        <a [routerLink]="['/curso', 'basic-training']" class="cover-click-overlay"></a>
       </div>
 
       <!-- Fallback: Imagen estática si no hay video de portada -->
