@@ -1,5 +1,8 @@
 /* ==================== CSS VARIABLES ==================== */
 :host {
+  display: block;
+  width: 100%;
+
   --color-bg: #0a0a0a;
   --color-primary: #c9a227;
   --color-primary-hover: #ddb52f;
@@ -84,6 +87,7 @@
   object-fit: contain;
   filter: drop-shadow(0 4px 20px rgba(201, 162, 39, 0.15));
   transition: transform 0.4s ease, filter 0.4s ease;
+  margin: 0 auto;
 }
 
 /* ==================== OPTIONS ==================== */

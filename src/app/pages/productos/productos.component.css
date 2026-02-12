@@ -179,7 +179,11 @@
   width: 100%;
   height: 100%;
   display: block;
-  pointer-events: none;
+  border: none;
+}
+
+.curso-video-cover iframe {
+  height: 100% !important;
 }
 
 .cover-click-overlay {
