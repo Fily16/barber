@@ -134,7 +134,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     primaryColor: '#c9a227',
     backgroundColor: '#0a0a0a',
     textColor: '#ffffff',
-    buttonUrl: 'https://ralph-cuts-academy.vercel.app/curso',
+    buttonUrl: 'https://barber-3mlm.vercel.app/curso/basic-training',
     welcomeSubject: 'Bienvenido a Ralph Cuts Academy',
     welcomeTitle: '¡Bienvenido, {nombre}! 🎉',
     welcomeMessage: 'Tu cuenta ha sido creada exitosamente. Ahora tienes acceso a los mejores cursos de barbería profesional.',
