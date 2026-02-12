@@ -22,15 +22,21 @@ export class ProductosComponent implements OnInit {
   }
 
   private loadCoverVideo(): void {
+    console.log('[COVER] Loading cover video...');
     this.courseService.getCourseCover('basic-training').subscribe({
       next: (response) => {
+        console.log('[COVER] Response received:', response);
+        console.log('[COVER] success:', response.success, 'data:', response.data);
         if (response.success && response.data) {
           const videoId = response.data.videoUrl;
+          console.log('[COVER] videoId:', videoId);
           this.coverVideoUrl = `https://iframe.mediadelivery.net/embed/590927/${videoId}?autoplay=true&loop=true&muted=true&preload=true&responsive=true&controls=false`;
           this.coverLoaded = true;
+          console.log('[COVER] coverLoaded set to true, URL:', this.coverVideoUrl);
         }
       },
-      error: () => {
+      error: (err) => {
+        console.error('[COVER] Error loading cover:', err);
         this.coverLoaded = false;
       }
     });
