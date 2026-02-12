@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SafeUrlPipe } from '../../pipes/safe-url.pipe';
@@ -15,7 +15,7 @@ export class ProductosComponent implements OnInit {
   coverVideoUrl: string | null = null;
   coverLoaded: boolean = false;
 
-  constructor(private courseService: CourseService) {}
+  constructor(private courseService: CourseService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.loadCoverVideo();
@@ -32,6 +32,7 @@ export class ProductosComponent implements OnInit {
           console.log('[COVER] videoId:', videoId);
           this.coverVideoUrl = `https://iframe.mediadelivery.net/embed/590927/${videoId}?autoplay=true&loop=true&muted=true&preload=true&responsive=true&controls=false`;
           this.coverLoaded = true;
+          this.cdr.detectChanges();
           console.log('[COVER] coverLoaded set to true, URL:', this.coverVideoUrl);
         }
       },
