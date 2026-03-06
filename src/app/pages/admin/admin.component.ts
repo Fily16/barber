@@ -8,7 +8,7 @@ import { AdminService, UserResponse, CreateUserRequest, AssignCourseRequest, Cre
 import { BunnyService, UploadProgress } from '../../core/services/bunny.service';
 import { NotificationService, EmailConfig, NotificationSettings, WhatsAppLink, UserCourseExpiry, MassiveEmailResult } from '../../core/services/notification.service';
 import { CourseResponse, UserCourseResponse, VideoResponse } from '../../core/models';
-import { BunnyUploadUrlResponse, BunnyStorageStats } from '../../core/models/bunny.model';
+import { BunnyUploadUrlResponse, BunnyStorageStats, BunnyVideoResponse, formatBunnyDuration } from '../../core/models/bunny.model';
 
 @Component({
   selector: 'app-admin',
@@ -119,6 +119,14 @@ export class AdminComponent implements OnInit, OnDestroy {
   };
   isUploading = false;
   bunnyUploadData: BunnyUploadUrlResponse | null = null;
+
+  // ==================== VINCULAR VIDEO EXISTENTE ====================
+  videoModalMode: 'upload' | 'existing' = 'upload';
+  bunnyVideosList: BunnyVideoResponse[] = [];
+  bunnyVideosLoading = false;
+  bunnyVideosPage = 1;
+  bunnyVideosTotalItems = 0;
+  selectedBunnyVideo: BunnyVideoResponse | null = null;
 
   // ==================== BUNNY STORAGE STATS ====================
   storageStats: BunnyStorageStats | null = null;
@@ -830,6 +838,9 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.thumbnailPreview = null;
     this.bunnyUploadData = null;
     this.bunnyService.resetProgress();
+    // Reset link existing mode
+    this.videoModalMode = 'upload';
+    this.selectedBunnyVideo = null;
     this.showVideoModal = true;
     this.cdr.detectChanges();
   }
@@ -871,8 +882,131 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.thumbnailPreview = null;
     this.bunnyUploadData = null;
     this.isUploading = false;
+    this.selectedBunnyVideo = null;
+    this.videoModalMode = 'upload';
     this.bunnyService.resetProgress();
     this.cdr.detectChanges();
+  }
+
+  // ==================== VINCULAR VIDEO EXISTENTE DE BUNNY ====================
+
+  /**
+   * Cambia el modo del modal de video entre subir nuevo y vincular existente
+   */
+  switchVideoModalMode(mode: 'upload' | 'existing'): void {
+    this.videoModalMode = mode;
+    this.videoFormError = '';
+    if (mode === 'existing' && this.bunnyVideosList.length === 0) {
+      this.loadBunnyVideos();
+    }
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Carga la lista de videos existentes en Bunny Stream
+   */
+  loadBunnyVideos(page: number = 1): void {
+    this.bunnyVideosLoading = true;
+    this.bunnyVideosPage = page;
+    this.bunnyService.listVideos(page, 50)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.bunnyVideosList = response.items || [];
+          this.bunnyVideosTotalItems = response.totalItems || 0;
+          this.bunnyVideosLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading Bunny videos:', error);
+          this.videoFormError = 'Error al cargar videos de Bunny. Verifica la conexión.';
+          this.bunnyVideosLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Selecciona un video existente de Bunny para vincularlo
+   */
+  selectBunnyVideo(video: BunnyVideoResponse): void {
+    this.selectedBunnyVideo = video;
+    // Auto-fill form with Bunny video data
+    this.videoForm.title = video.title || '';
+    this.videoForm.videoUrl = video.guid;
+    this.videoForm.duration = formatBunnyDuration(video.length);
+    this.videoForm.thumbnailUrl = `https://vz-e7443a92-10a.b-cdn.net/${video.guid}/thumbnail.jpg`;
+    this.videoFormError = '';
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Vincula el video seleccionado de Bunny al curso actual en la BD
+   */
+  linkExistingBunnyVideo(): void {
+    if (!this.selectedBunnyVideo) {
+      this.videoFormError = 'Selecciona un video de la lista';
+      this.cdr.detectChanges();
+      return;
+    }
+    if (!this.videoForm.title) {
+      this.videoFormError = 'El título es requerido';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.startLoading('Vinculando video...');
+
+    const videoData: CreateVideoRequest = {
+      courseId: this.videoForm.courseId,
+      title: this.videoForm.title,
+      description: this.videoForm.description,
+      videoUrl: this.selectedBunnyVideo.guid,
+      thumbnailUrl: this.videoForm.thumbnailUrl,
+      duration: this.videoForm.duration,
+      type: this.videoForm.type,
+      orderIndex: this.videoForm.orderIndex
+    };
+
+    this.adminService.createVideo(videoData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showSuccess('Video vinculado exitosamente');
+          this.closeVideoModal();
+          this.loadData();
+        },
+        error: (error) => {
+          console.error('Error linking video:', error);
+          this.videoFormError = error.error?.message || 'Error al vincular el video';
+          this.stopLoading();
+        }
+      });
+  }
+
+  /**
+   * Obtiene el thumbnail de un video de Bunny
+   */
+  getBunnyVideoThumbnail(video: BunnyVideoResponse): string {
+    return `https://vz-e7443a92-10a.b-cdn.net/${video.guid}/thumbnail.jpg`;
+  }
+
+  /**
+   * Formatea la duración de un video de Bunny (segundos a MM:SS)
+   */
+  formatBunnyVideoDuration(seconds: number): string {
+    return formatBunnyDuration(seconds);
+  }
+
+  /**
+   * Obtiene el texto del estado de un video de Bunny
+   */
+  getBunnyVideoStatusText(status: number): string {
+    const statuses: { [key: number]: string } = {
+      0: 'Creado', 1: 'Subido', 2: 'Procesando',
+      3: 'Transcodificando', 4: 'Listo', 5: 'Error', 6: 'Subiendo'
+    };
+    return statuses[status] || 'Desconocido';
   }
 
   /**
@@ -1054,7 +1188,13 @@ export class AdminComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Para nuevo video, necesita archivo
+    // Si estamos en modo vincular existente, usar ese flujo
+    if (this.videoModalMode === 'existing' && !this.editingVideo) {
+      this.linkExistingBunnyVideo();
+      return;
+    }
+
+    // Para nuevo video en modo upload, necesita archivo
     if (!this.editingVideo && !this.selectedVideoFile) {
       this.videoFormError = 'Selecciona un archivo de video';
       this.cdr.detectChanges();
